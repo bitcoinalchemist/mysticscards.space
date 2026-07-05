@@ -1166,10 +1166,10 @@ let currentSuit = 'none';
 let _finderPick = null; // { rank, suit } or null
 
 // Keep the finder's life-script + relationship-connection mini-grids
-// always at 75% of the Quadration grid's ACTUAL rendered width, no
+// always 1:1 with the Quadration grid's ACTUAL rendered width, no
 // matter the viewport. We measure #annualGrid via a ResizeObserver
-// and set --quadration-actual-w on documentElement; the CSS calc
-// (max-width: calc(var(--quadration-actual-w) * 0.75)) does the rest.
+// and set --quadration-actual-w on documentElement; the CSS
+// (max-width: var(--quadration-actual-w)) does the rest.
 function syncFinderGridsFromQuadration() {
   const ag = document.getElementById('annualGrid');
   if (!ag) return;
@@ -1197,7 +1197,7 @@ function syncFinderGridsFromQuadration() {
   setTimeout(syncFinderGridsFromQuadration, 200);
 })();
 // Sync immediately before either result panel becomes visible, so the
-// 75% ratio is computed from the LATEST quadration width.
+// 1:1 width is computed from the LATEST quadration width.
 ['finderResult', 'relResult'].forEach(id => {
   const el = document.getElementById(id);
   if (!el || typeof MutationObserver !== 'function') return;
@@ -1214,8 +1214,8 @@ function ensureSpreadCtl() {
     // the readings live in the planets row at the top of the page (#planetRow).
     _spreadCtl = buildSpreadGrid(document.getElementById('annualGrid'), {});
     // Sync immediately so the finder grids have a real measurement to
-    // compute 75% from (rather than the CSS fallback) the first time
-    // the life-script renders.
+    // match 1:1 (rather than the CSS fallback) the first time the
+    // life-script renders.
     syncFinderGridsFromQuadration();
   }
   return _spreadCtl;

@@ -561,17 +561,17 @@
     }
     .result-right .result-grid .result-box:last-child { height: 100%; }
     /* Life script cards in finder: 7-col 1fr / aspect-ratio 5/7 grid.
-       Width = 75% of the Quadration grid's ACTUAL rendered width — set
+       Width = 1:1 with the Quadration grid's ACTUAL rendered width — set
        in JS by syncFinderGridsFromQuadration (ResizeObserver on the
-       spread-grid). Falls back to the --quadration-max-w cap (560×.75
-       = 420px) before JS runs. The relationship Connections mini-grid
-       follows the same formula. No mobile override — the 75% ratio
-       holds at every viewport. */
+       spread-grid). Falls back to the --quadration-max-w cap before JS
+       runs. The relationship Connections mini-grid follows the same
+       formula. No mobile override — the 1:1 ratio holds at every
+       viewport. */
     .finder-result-inner .ls-grid {
       grid-template-columns: repeat(7, minmax(0, 1fr));
       gap: .45rem .35rem;
       justify-content: center;
-      max-width: calc(var(--quadration-actual-w, var(--quadration-max-w)) * 0.75);
+      max-width: var(--quadration-actual-w, var(--quadration-max-w));
       margin: 0 auto;
     }
     .finder-result-inner .ls-card {
@@ -684,8 +684,8 @@
       .finder-result .result-body { grid-template-columns: 1fr; }
       .result-body .result-grid { grid-template-columns: 1fr 1fr; }
       .result-life-script { padding: 1rem .65rem; }
-      /* No max-width override here — the 75%-of-quadration calc applies
-         at every width so the cards always stay 75% of the quadration's
+      /* No max-width override here — the 1:1-with-quadration calc applies
+         at every width so the cards always match the quadration's
          actual rendered card size. */
       .finder-result-inner .ls-card { width: 100% !important; min-width: 0 !important; }
     }
@@ -1084,7 +1084,7 @@
       font-size: 1.1rem; color: var(--gold-ink);
       letter-spacing: .04em; margin: 0 0 .9rem;
     }
-    .rel-conn { max-width: calc(var(--quadration-actual-w, var(--quadration-max-w)) * 0.75); margin: 0 auto 1.4rem; }
+    .rel-conn { max-width: var(--quadration-actual-w, var(--quadration-max-w)); margin: 0 auto 1.4rem; }
     .rel-conn:last-child { margin-bottom: 0; }
     .rel-conn-title {
       text-align: center; font-family: var(--serif);

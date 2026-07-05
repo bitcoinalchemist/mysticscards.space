@@ -52,12 +52,12 @@ window.RICHMOND = {
     },
     planets: {
       Mercury: "A sudden passion for one of the opposite sex. Meeting an old friend unexpectedly. A friendly offer or proposal. Invitation to a party.",
-      Venus: "Meeting of dear friends or lovers. Q h, 21i, Jh indicate an engagement of marriage. 8h a wedding. A union of hearts.",
+      Venus: "Meeting of dear friends or lovers. Q h, 2h, Jh indicate an engagement of marriage. 8h a wedding. A union of hearts.",
       Mars: "Meeting of lovers, followed by a coolness or quarrel. Soon ended, however, and all is serene. Followed by a Jack, indicating a visit from a male friend.",
-      Jupiter: "Two old friends meet. A happy visit soon ended. 2 h, Qli visit from a lady. If a King or Knave a visit from a gentleman.",
+      Jupiter: "Two old friends meet. A happy visit soon ended. 2 h, Qh visit from a lady. If a King or Knave a visit from a gentleman.",
       Saturn: "Visit to a sick friend. If 7 s, 9 s, 2 h a meeting at a funeral. 2h, 8 c influence from an unseen friend. Followed by an ace, a letter from a friend who is ill.",
       Uranus: "Co-partnership in labor. Union in labor. Work with a friend. Engagement to labor. A bargain between two persons. With ace of hearts, a letter regarding work.",
-      Neptune: "Meeting of friends after a long journey. Letter from a distance. 2h, Ih a love letter. Between J-J young men or sailors meet."
+      Neptune: "Meeting of friends after a long journey. Letter from a distance. 2h, Jh a love letter. Between J-J young men or sailors meet."
     } },
   "3_hearts": { name: "Three of Hearts", solar: 3, spirit: 30, astral: "15645",
     spread: {
@@ -102,7 +102,7 @@ window.RICHMOND = {
       Mars: "Satisfaction in friendly conversation with person of same sex. Satisfaction gained through law, if law-suit is shown elsewhere.",
       Jupiter: "Satisfaction in costly furniture. In fine dresses and a fine home. Love of fine surroundings. 10 h, 4h a love for your new work. 4h, 10 d pleasure in money making.",
       Saturn: "Recovery from illness by self or friends. Satisfaction with visits of unseen friends. Pleasure derived from kindness to the sick.",
-      Uranus: "Satisfaction m your employment. Kindness of a friend regarding labor of some kind. Happiness in working for others.",
+      Uranus: "Satisfaction in your employment. Kindness of a friend regarding labor of some kind. Happiness in working for others.",
       Neptune: "Satisfaction in travel by water and land. Good lack in fishing or anything connected with the water. A visit of pleasant friends from afar."
     } },
   "5_hearts": { name: "Five of Hearts", solar: 5, spirit: 50, astral: "32333",
@@ -120,7 +120,7 @@ window.RICHMOND = {
       emblem: "A♠ (Mars line, seat 6)"
     },
     planets: {
-      Mercury: "Sudden change in life. C-hange in feelings. Removal of home somewhat unexpected. Short journey to home of friends.",
+      Mercury: "Sudden change in life. Change in feelings. Removal of home somewhat unexpected. Short journey to home of friends.",
       Venus: "Change in love or friendship. Parting from friends. Journey to another city or town, K h, 5 h, Qh divorce or separation.",
       Mars: "Parting from male friends. A journey with a male. Removal for reasons connected with some man. Change of feelings towards a man.",
       Jupiter: "A business journey. Change in circumstances of a friend or a near relative. 5 h, 1 c, 2 c news of a change comes by letter.",
@@ -144,7 +144,7 @@ window.RICHMOND = {
     },
     planets: {
       Mercury: "Even temper and dispassionate qualities. Smooth running life. But few changes. Contra-indicates the five of hearts under same planet.",
-      Venus: "Love and friendship I'running smoothly and without much variety. Married happiness. Contentment for a season.",
+      Venus: "Love and friendship running smoothly and without much variety. Married happiness. Contentment for a season.",
       Mars: "Monotony of life and male forces or strength. In some cases this emblem indicates a long engagement of marriage.",
       Jupiter: "Monotony or long continuation of existing pecuniary affairs. If a co-partnership is shown, it will be long continued. Slow moving life.",
       Saturn: "Sickness of friends or relatives or any other condition under Saturn remains the same. Change, if any, slight under this ruling.",
@@ -189,7 +189,7 @@ window.RICHMOND = {
       emblem: "A♠ (Neptune line, seat 3)"
     },
     planets: {
-      Mercury: "Sadden power, soon expended. Opera and dancing parties. Gathering of friends and societies. Power and development of love.",
+      Mercury: "Sudden power, soon expended. Opera and dancing parties. Gathering of friends and societies. Power and development of love.",
       Venus: "Social and religious gatherings. Spiritual force, power and development. Advancement in soul force. Increase in friendship and love.",
       Mars: "Gatherings or meetings where males predominate. Strong power. Will force. Martial music. Parties where music is by brass bands.",
       Jupiter: "Meetings of friends or fraternal societies. Financial power. Consideration of financial questions. Strength or power of expression.",
@@ -285,7 +285,7 @@ window.RICHMOND = {
       Venus: "A warm-hearted, loving, faithful woman. Disposition of kindness and self-sacrifice. An affectionate sweetheart.",
       Mars: "A faithful, warm-hearted wife or mother. Lady who has some male characteristics regarding business matters. Sometimes a strong and healthy young girl.",
       Jupiter: "A warm-hearted lady of some pecuniary ability and power. A good friend. If matched or co-ordinated with a King, she is married.",
-      Saturn: "An affectionate and warm-hearted widow lady. lu some eases a divorced woman, but not through her own fault. Usually, unless contra-indicated, in poor health.",
+      Saturn: "An affectionate and warm-hearted widow lady. In some cases a divorced woman, but not through her own fault. Usually, unless contra-indicated, in poor health.",
       Uranus: "An industrious, good and faithful woman. May be wife, sister or friend only. A loving mother. Gentle disposition and strong psychic powers sometimes.",
       Neptune: "A good-natured and kindly disposed lady who has traveled a great deal. A good talker. Loves humanity in general. Sometimes rather visionary."
     } },
@@ -305,11 +305,11 @@ window.RICHMOND = {
     },
     planets: {
       Mercury: "A middle-aged or elderly gentleman. Quick witted but good tempered and kindly dispositioned. A friend to you.",
-      Venus: "A mild mannered, kindly, warm-hearted man. A good friend, or insome cases a near relative by blood or marriage. A kind and affectionate husband.",
+      Venus: "A mild mannered, kindly, warm-hearted man. A good friend, or in some cases a near relative by blood or marriage. A kind and affectionate husband.",
       Mars: "A good-hearted man. Usually a married man. A great talker and reasoner. Sometimes a little quick in temper, but soon over it. An old military man in some cases.",
       Jupiter: "A professional man or merchant of much power and force of character. A friend to you. A man of much power in gaining friends.",
       Saturn: "A good, kindly dispositioned friend, who is usually a physician, or in some manner associated with sickness and death. Strong psychic powers under Saturn.",
-      Uranus: "A good-hearted, hard working man, who has always worked for the benefit of others. He has powe^-ful psychic forces about him and with him.",
+      Uranus: "A good-hearted, hard working man, who has always worked for the benefit of others. He has powerful psychic forces about him and with him.",
       Neptune: "A kind-hearted man who has traveled a great deal. A great story teller. Sometimes this card indicates an old sailor."
     } },
   "A_clubs": { name: "Ace of Clubs", solar: 14, spirit: 51, astral: "44731",
@@ -327,10 +327,10 @@ window.RICHMOND = {
       emblem: "A♠ (Jupiter line, seat 1)"
     },
     planets: {
-      Mercury: "A wish suddenly formed. An aspiration for knowledge. A letter containing a secret. A piece of news from j? short distance.",
-      Venus: "Letter, when in conjunction with deuces. A love cf know edge. A wish gratified. Good news in a letter. A telegram with good news.",
+      Mercury: "A wish suddenly formed. An aspiration for knowledge. A letter containing a secret. A piece of news from a short distance.",
+      Venus: "Letter, when in conjunction with deuces. A love of knowledge. A wish gratified. Good news in a letter. A telegram with good news.",
       Mars: "Desire for much knowledge. Inquisitiveness. Desire for occult communication. Love of power. Letter from a gentleman, when with a deuce.",
-      Jupiter: "Desire for knowledge that may lead to power (^ preferment. Money or property possessions. With 2 or 5, indicates a business proposition.",
+      Jupiter: "Desire for knowledge that may lead to power or preferment. Money or property possessions. With 2 or 5, indicates a business proposition.",
       Saturn: "Letter containing bad news, especially with 2 s and 7 s. A wish which will not be gratified. A longing for the unattainable. Bad news from a sick person.",
       Uranus: "A wish for knowledge regarding some kind of work. Aspirations for advancement in work. Hunger for occult manifestations.",
       Neptune: "A wish to gain knowledge and experience through travel. If followed by a 2 it indicates a letter from a distance. With Jh, news from a traveler far away."
@@ -373,11 +373,11 @@ window.RICHMOND = {
       emblem: "A♠ (Sun line, seat 1 / left)"
     },
     planets: {
-      Mercury: "Indecision relative to a short journey. Needed iu two places at the same time. Undecided as to two lines of study. Two ways open to you.",
-      Venus: "Indecision doubt in an affair of friendship with a lady. oru* Undecided news or doubt regarding a lady friend. Two ways open at once.",
-      Mars: "Indecision regarding a with a gentleman. transaction Doubtful news. Knowledge of an undecided character. If followed by an ace, the news comes by letter.",
-      Jupiter: "Knowledge regarding a financial transaction, is held in doubt. Undecided m mind relative to a certain bargain or proposition.",
-      Saturn: "Indecision, doubt and distrust as to the future, caused by bad influences or ill health. Knowledge of. a doubtful character from two places.",
+      Mercury: "Indecision relative to a short journey. Needed in two places at the same time. Undecided as to two lines of study. Two ways open to you.",
+      Venus: "Indecision, doubt in an affair of friendship with a lady. Undecided news or doubt regarding a lady friend. Two ways open at once.",
+      Mars: "Indecision regarding a transaction with a gentleman. Doubtful news. Knowledge of an undecided character. If followed by an ace, the news comes by letter.",
+      Jupiter: "Knowledge regarding a financial transaction, is held in doubt. Undecided in mind relative to a certain bargain or proposition.",
+      Saturn: "Indecision, doubt and distrust as to the future, caused by bad influences or ill health. Knowledge of a doubtful character from two places.",
       Uranus: "Doubt and a state of unrest and indecision regarding some line of work or appertaining to a real estate transaction. Doubtful psychic experiences,",
       Neptune: "Indecision relating to a journey to some distance. Doubtful news from far away. Uneasy feeling regarding a distant transaction."
     } },
@@ -468,7 +468,7 @@ window.RICHMOND = {
       Mercury: "A trouble that comes suddenly. Bad news from a distance. Inharmony of feelings. Opposition to your projects. An obstacle to gaining knowledge.",
       Venus: "Unfulfilled hopes. Some kind of trouble or quarrel with a woman. Opposition to some belief held by you. A rejected favor or request.",
       Mars: "Opposition from a male. A quarrel or a lawsuit. Trouble in gaining certain knowledge. Antagonism to your wishes and projects.",
-      Jupiter: "Trouble on account of some business transaction. Bad news regarding f^ mercantile firm or corporation Antagonism from some business firm.",
+      Jupiter: "Trouble on account of some business transaction. Bad news regarding a mercantile firm or corporation. Antagonism from some business firm.",
       Saturn: "A scandal. Backbiting. Ill remarks regarding the person. Illness caused by worry or overstudy. Overthrowing of your plans for advancement in knowledge.",
       Uranus: "Misinformation regarding a piece of work. Trouble with a job of work. Trouble regarding real estate. Antagonizing influences of a psychic nature.",
       Neptune: "Bad news from far away. Trouble with some matter at a distance. An important letter. Antagonizing influences, that come from some one far away."
@@ -488,10 +488,10 @@ window.RICHMOND = {
       emblem: "A♠ (Venus line, seat 7)"
     },
     planets: {
-      Mercury: "Rapid gaining of knowledge. A rapid development. Meet» ings for purposes of advancement. Strength and courage. Overcoming of obstacles to advancement.",
+      Mercury: "Rapid gaining of knowledge. A rapid development. Meetings for purposes of advancement. Strength and courage. Overcoming of obstacles to advancement.",
       Venus: "Feminine advancement in favor of gaining knowledge. Spiritual development or psychic powers. Represents female schools or gatherings.",
       Mars: "Debates. Male strength and power. Psychic unfoldment and advancement. Represents male schools or gatherings sometimes, of men, for political or other purposes.",
-      Jupiter: "Councils and meetings for financial consideration of questions.Power and knowledge, applied to some money making scheme or business.",
+      Jupiter: "Councils and meetings for financial consideration of questions. Power and knowledge, applied to some money making scheme or business.",
       Saturn: "Power to overcome illness or trouble, through knowledge and development. Recovery of a friend who has been ill. Good news from a sick acquaintance.",
       Uranus: "Meetings and gatherings of persons for the consideration of questions connected with labor. Power and knowledge of business or labor. News regarding real estate.",
       Neptune: "Knowledge of matters connected with travel or water. Ability to succeed in such avocations as come under that head."
@@ -585,7 +585,7 @@ window.RICHMOND = {
       Mars: "A smart woman, but rather quick tempered. In some cases she presents a rather masculine disposition or appearance. A lady of strong will force and power.",
       Jupiter: "A lady of strong powers and force of character. Generally one who makes her own way in the world. A business woman.",
       Saturn: "An intelligent lady, but one who has experienced much sickness and trouble. Sometimes indicates a jealous woman.",
-      Uranus: "A hard working, industrious lady, who brings knowledge to bear in her work. One who earns money for herself In some cases, a farmer's wife.",
+      Uranus: "A hard working, industrious lady, who brings knowledge to bear in her work. One who earns money for herself. In some cases, a farmer's wife.",
       Neptune: "A traveled lady. One who has seen much of the world and has profited thereby, A lady who possesses knowledge that fits her for a stirring life."
     } },
   "K_clubs": { name: "King of Clubs", solar: 26, spirit: 82, astral: "43474",
@@ -603,7 +603,7 @@ window.RICHMOND = {
       emblem: "A♠ (Venus line, seat 1)"
     },
     planets: {
-      Mercury: "A quick tempered man. Smart, lively and witty man. Quick to grasp a point. Kincjs generally represent married men or men of middle or advanced age.",
+      Mercury: "A quick tempered man. Smart, lively and witty man. Quick to grasp a point. Kings generally represent married men or men of middle or advanced age.",
       Venus: "A kind-hearted and even tempered gentleman. Usually one who is learned, or following some learned profession. Represents a man of middle age.",
       Mars: "A loud talking overbearing man. Sometimes a military man, or one who leads or commands. A smart, active office holder or politician.",
       Jupiter: "An intelligent reasoner and powerful speaker. In some cases a physician or lawyer. Shows generally a man of \"power.'' With diamonds strong, a merchant.",
@@ -627,12 +627,12 @@ window.RICHMOND = {
     },
     planets: {
       Mercury: "A wish to make money rapidly. A telegram or letter regarding pecuniary matters. A sudden aspiration connected with money.",
-      Venus: "Desire for money to be used for a kindly purpose. Wish to do good with wealth. Unselfish wish for wealth. With a ten^ the wish will be gratified.",
+      Venus: "Desire for money to be used for a kindly purpose. Wish to do good with wealth. Unselfish wish for wealth. With a ten, the wish will be gratified.",
       Mars: "Wish for money connected in some way with the law. inspiration to succeed in some branch of law. Money letter from a man.",
       Jupiter: "Important message on business. Wish, connected with a large business transaction. Strong aspiration for success in business.",
       Saturn: "Wish to succeed, which is destined to be disappointed, unless strong indications point the other way. Letter or telegram regarding illness of some person.",
       Uranus: "Wish for chance to earn money by labor. Aspiration to succeed in some work to be undertaken. Letter regarding labor matters, when followed by a 2 s or 2 d.",
-      Neptune: "Message from a distance. Wish for success connected with travel or business at a distance.News from far away. A wish for money to be used in making a journey."
+      Neptune: "Message from a distance. Wish for success connected with travel or business at a distance. News from far away. A wish for money to be used in making a journey."
     } },
   "2_diamonds": { name: "Two of Diamonds", solar: 28, spirit: 13, astral: "32348",
     spread: {
@@ -672,13 +672,13 @@ window.RICHMOND = {
       emblem: "A♠ (Jupiter line, seat 2)"
     },
     planets: {
-      Mercury: "A sudden indecision arrises regarding a pecuniary matter. Two business ways open at once. A feeling of uneasy insecurity. Doubt and distrust regarding business.",
+      Mercury: "A sudden indecision arises regarding a pecuniary matter. Two business ways open at once. A feeling of uneasy insecurity. Doubt and distrust regarding business.",
       Venus: "Indecision relating to money affairs and a lady. Regarding a certain friend and a money matter. Choice between two propositions.",
       Mars: "An undecided pecuniary affair with a male. A lawsuit in a state of uncertainty. An uncertain trouble arises. Doubt regarding a pecuniary transaction.",
       Jupiter: "An undecided business investment. Indecision connected with a large transaction. Two ways open at once in pecuniary affairs. Uncertainty and doubt.",
       Saturn: "Uncertainty caused by death, or perhaps only illness. A feeling of insecurity regarding future pecuniary transaction.",
       Uranus: "A real estate transaction held in suspense. Uncertain outcome to a labor matter. Two ways open at once. Choice of two kinds of labor, both fair.",
-      Neptune: "Uncertainty and indecision connected with money, a journey or some matter at a distance. Doubt and general indecision reo'arding future home and business."
+      Neptune: "Uncertainty and indecision connected with money, a journey or some matter at a distance. Doubt and general indecision regarding future home and business."
     } },
   "4_diamonds": { name: "Four of Diamonds", solar: 30, spirit: 33, astral: "43771",
     spread: {
@@ -765,7 +765,7 @@ window.RICHMOND = {
     },
     planets: {
       Mercury: "Unexpected call for money. Trouble regarding a pecuniary matter. Sudden and unexpected loss of money or property of some kind.",
-      Venus: "Money Trouble connected with paid or given to a lady. money and a friend, or near relative. With 8h, money paid out for some pleasure.",
+      Venus: "Money paid or given to a lady. Trouble connected with money and a friend, or near relative. With 8h, money paid out for some pleasure.",
       Mars: "Loss of money through the law. Money paid out to a man. In some cases a lawsuit, when with 7 c, especially. Indicates trouble connected with money, generally.",
       Jupiter: "Investment of money in some place where you will not see it again soon. Loss of money in a trade. Use care when this card comes under Jupiter.",
       Saturn: "Loss of money through illness of self or some other person. Misfortune or bad acts of another. If followed by 7 s and 10 s it is by death of some one.",
@@ -902,10 +902,10 @@ window.RICHMOND = {
       emblem: "A♠ (Mars line, seat 5)"
     },
     planets: {
-      Mercury: "A sharp, quick, active, money-inaking business man. Sometimes a speculator. One who makes money fluctuatingly.",
+      Mercury: "A sharp, quick, active, money-making business man. Sometimes a speculator. One who makes money fluctuatingly.",
       Venus: "A wealthy lover. A wealthy friend. An actor or musician. A business man with kind heart, who makes much money.",
       Mars: "In some cases a wealthy husband. A well-to-do lawyer, or one who owns or controls mines and minerals. A man of strong money-making power.",
-      Jupiter: "A wealthy, money-making, proud, \"self-made\" inan, who, as has been said, \"loves his maker.'' In some cases a banker, wholesale dealer or manufacturer.",
+      Jupiter: "A wealthy, money-making, proud, \"self-made\" man, who, as has been said, \"loves his maker.'' In some cases a banker, wholesale dealer or manufacturer.",
       Saturn: "A rich man who is very close with his money. In some cases a miserly man. Under some aspects a man of wealth who is in ill health.",
       Uranus: "A wealthy man who labors hard to make more money. In some cases a large real estate dealer. A gentleman of much psychic power.",
       Neptune: "A man who has spent much money in travel. Sometimes a merchant or seafaring man who has made a great deal of money."
@@ -948,7 +948,7 @@ window.RICHMOND = {
       emblem: "A♠ (Uranus line, seat 5)"
     },
     planets: {
-      Mercury: "A pressing engagement. An agreement to work for another. An unexpected officer of a piece of work. A sudden union.",
+      Mercury: "A pressing engagement. An agreement to work for another. An unexpected offer of a piece of work. A sudden union.",
       Venus: "A union with a lady in some kind of work. A joining of forces. A proposal of a business nature. A copartnership with a relative or near friend.",
       Mars: "Work in conjunction with a man. Consultation with a lawyer. A combination or plot. A letter from a male. A union of male forces in some kind of labor.",
       Jupiter: "Interview with a business man relating to work. Letter regarding a piece of work. A transaction between two persons.",
@@ -971,7 +971,7 @@ window.RICHMOND = {
       emblem: "A♠ (Saturn line, seat 6)"
     },
     planets: {
-      Mercury: "A case arrises suddenly where you must decide between two courses. Two ways open at once. Two officers of some kind, relating to work.",
+      Mercury: "A case arises suddenly where you must decide between two courses. Two ways open at once. Two offers of some kind, relating to work.",
       Venus: "Indecision regarding a matter of work or health, connected with a woman. Undecided bargain with a friend. Indecision regarding a home.",
       Mars: "Undecided business matter. Business indecision. Two ways open in business, both requiring much work. Indecision regarding a law case.",
       Jupiter: "Indecision regarding a cash transaction. Two kinds of business, both requiring much cash to conduct, open up at once for the person.",
@@ -1044,7 +1044,7 @@ window.RICHMOND = {
       Venus: "Quiet, uneventful life as regards self and intimate friends and surroundings. Matters move smoothly. This card indicates quiet and comfort for females.",
       Mars: "Settlement of lawsuits, quarrels or anything of the kind shown under this planet. Absence of change or excitement generally.",
       Jupiter: "Monotony in business or professional life. Business moving smoothly. Counteracts fives and sevens under same planet.",
-      Saturn: "Recovery from illness when same is shown. Counteracts changes and troubles shown under this planet. Followed ed by 4d, satisfactory and steady employment.",
+      Saturn: "Recovery from illness when same is shown. Counteracts changes and troubles shown under this planet. Followed by 4d, satisfactory and steady employment.",
       Uranus: "Prosperity in profession or labor, or the contrary, remains without change for some time. Monotony in profession or labor.",
       Neptune: "If a journey is shown it is a long and dreary one. In general this emblem indicates \" no journey will be made.\" Contra-indicates the five and seven of same suit."
     } },
@@ -1201,7 +1201,7 @@ window.RICHMOND = {
       emblem: "A♠ (Jupiter line, seat 7)"
     },
     planets: {
-      Mercury: "A quick-tempered, hard-working, rushing man. One who employes many workmen, in some cases. An energetic business man.",
+      Mercury: "A quick-tempered, hard-working, rushing man. One who employs many workmen, in some cases. An energetic business man.",
       Venus: "A man of kindly disposition, not very wealthy, usually one who is a hard worker. Kind to his family. In some cases the head of a concern employing females.",
       Mars: "Usually denotes an industrious, professional gentleman. An attorney at law, a judge, or some office holder. In some cases, the head of a concern employing male help.",
       Jupiter: "A manufacturer or a gentleman who employs a great deal of labor. A self-made man. A man of influence. A business rusher.",
