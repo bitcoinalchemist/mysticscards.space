@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cards of Life — mysticscards.space</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Rye&family=Roboto+Slab:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="icon" href="favicon.ico" sizes="any" />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#100c1e" />
+  <meta name="description" content="Find your birth card and explore cardology — personality, life script, planetary periods, and relationship readings." />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="mysticscards.space" />
+  <meta property="og:title" content="Cards of Life" />
+  <meta property="og:description" content="Find your birth card and explore cardology — personality, life script, planetary periods, and relationship readings." />
+  <meta property="og:url" content="https://mysticscards.space/cardsoflife.html" />
+  <meta property="og:image" content="https://mysticscards.space/assets/og-image.png" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="version" content="1.35" />
+  <link rel="canonical" href="https://mysticscards.space/cardsoflife.html" />
+  <link rel="stylesheet" href="css/site.css" />
+  <link rel="stylesheet" href="css/cardsoflife.css" />
+</head>
+<body class="starry">
+<canvas class="stars-bg" aria-hidden="true"></canvas>
+<script src="js/stars.js"></script>
+<script src="js/site.js"></script>
+
+<main>
+<h1 class="vh">Cards of Life — Cardology</h1>
+
+<!-- ── Card Elements: the four suits (always shown) + the thirteen numbers
+     (revealed once a suit is selected). Click a glyph to drop its reading;
+     ‹ › / ← → / swipe navigate. Mirrors the I Ching trigram row. ───────── -->
+<section class="elements page-section" id="elements" aria-label="The suits, numbers, and planets of the deck">
+  <div class="el-inner">
+    <div class="suit-row" id="suitRow" role="list" aria-label="The four suits"></div>
+    <!-- Reading-voice toggle (Claude | Olney) — hidden until a suit is picked
+         (revealed with the number + planet rows via revealRows). Swaps every
+         reading in the section between the modern (Claude) text and Olney H.
+         Richmond's 1893 words; wired in js/cardsoflife.js (window.elementsVoice),
+         persists in localStorage (cardsoflife_voice). Styled to match the I Ching
+         Fu Xi / King Wen segmented pill. -->
+    <div class="el-voice" id="elVoice" role="group" aria-label="Reading voice" hidden>
+      <button type="button" class="el-voice-btn is-on" data-voice="modern" aria-pressed="true">Claude</button>
+      <button type="button" class="el-voice-btn" data-voice="olney" aria-pressed="false">Olney</button>
+    </div>
+    <div class="num-row" id="numRow" role="list" aria-label="The thirteen numbers" hidden></div>
+    <!-- The seven planets + the Crown — sits directly under the A–K row. Click a
+         glyph to drop its reading (below); ‹ › / ← → / swipe navigate.
+         Data: PLANET_DATA / PLANET_ORDER (js/planetdata.js). -->
+    <div class="planet-row" id="planetRow" role="list" aria-label="The seven planets and the Crown" hidden></div>
+    <div class="el-detailwrap">
+      <div class="el-detailmin">
+        <div class="el-detail" id="elDetail" aria-live="polite">
+          <button class="el-nav el-prev" type="button" aria-label="Previous">‹</button>
+          <div class="el-card">
+            <div class="el-head">
+              <span class="el-fig" id="elFig" aria-hidden="true"></span>
+              <span class="el-name" id="elName"></span>
+            </div>
+            <div class="el-kws" id="elKws"></div>
+            <div class="el-text" id="elText"></div>
+            <p class="el-keynote" id="elKeynote"></p>
+          </div>
+          <button class="el-nav el-next" type="button" aria-label="Next">›</button>
+        </div>
+      </div>
+    </div>
+    <div class="pl-pop" id="plPop">
+      <div class="pl-detailwrap"><div class="pl-detailmin">
+        <div class="pl-detail" id="plDetail" aria-live="polite">
+          <div class="pl-card">
+            <div class="pl-head">
+              <span class="pl-fig" id="plFig" aria-hidden="true"></span>
+              <span class="pl-name" id="plName"></span>
+            </div>
+            <div class="pl-sub" id="plSub"></div>
+            <div class="pl-kws" id="plKws"></div>
+            <div class="pl-para" id="plPara"></div>
+            <dl class="pl-attrs" id="plAttrs"></dl>
+            <p class="pl-syn" id="plSyn"></p>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Unified Card Finder ───────────────────────────────────────── -->
+<section class="finder page-section section-open" id="finder" style="scroll-margin-top:64px">
+  <button class="section-toggle" type="button"
+          aria-expanded="true" aria-controls="finderBody"
+          onclick="toggleSection('finder')">
+    <span class="section-label">Finder</span>
+    <svg class="section-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+  </button>
+  <div class="section-bodywrap">
+    <div class="section-bodymin" id="finderBody">
+  <div class="finder-top" id="finderTop">
+    <!-- Classic Day/Month dropdown form — the sole finder UI (the
+         orrery and Olney-coins experiments are retired; we'll iterate
+         on a fresh design from here). -->
+    <div class="finder-inner">
+    <div class="finder-form">
+      <!-- Three columns: person 1 | toggle chip | person 2.
+           In solo mode the right column is empty (just empty space
+           reserved for the partner) and the chip shows "+". Click
+           the chip to add a partner; the chip stays put in the
+           middle and flips to "−". Click "−" to remove. The slots
+           stack vertically under 480px. -->
+      <div class="person-slots">
+        <div class="person-slot person-self">
+          <div class="finder-inputs">
+            <div class="fw-frame"><div class="fw-wheel" id="fDayWheel" tabindex="0" role="listbox" aria-label="Birth day"></div><div class="fw-wheel-cell"></div></div>
+            <div class="fw-frame"><div class="fw-wheel" id="fMonthWheel" tabindex="0" role="listbox" aria-label="Birth month"></div><div class="fw-wheel-cell"></div></div>
+          </div>
+          <!-- Source-of-truth selects — also serve as the visible dropdown
+               shortcut when .finder-form.dd-on. Hidden by default. -->
+          <div class="finder-dd-row">
+            <select id="fDay" class="fw-bound" aria-label="Birth day"><option value="">DD</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option></select>
+            <select id="fMonth" class="fw-bound" aria-label="Birth month">
+              <option value="">MM</option>
+              <option value="1">Jan</option><option value="2">Feb</option>
+              <option value="3">Mar</option><option value="4">Apr</option>
+              <option value="5">May</option><option value="6">Jun</option>
+              <option value="7">Jul</option><option value="8">Aug</option>
+              <option value="9">Sep</option><option value="10">Oct</option>
+              <option value="11">Nov</option><option value="12">Dec</option>
+            </select>
+          </div>
+          <!-- Rank/suit card picker — the chevron reveals these two dropdowns
+               in place of the (retired) DD/MM selects; choosing a rank AND a
+               suit loads that card's reading. Wired in js/cardsoflife.js. -->
+          <div class="finder-cardpick-row" id="finderCardPick">
+            <select id="cpRankSel" aria-label="Card rank">
+              <option value="">Rank</option>
+              <option value="A">Ace</option>
+              <option value="2">Two</option><option value="3">Three</option>
+              <option value="4">Four</option><option value="5">Five</option>
+              <option value="6">Six</option><option value="7">Seven</option>
+              <option value="8">Eight</option><option value="9">Nine</option>
+              <option value="10">Ten</option>
+              <option value="J">Jack</option><option value="Q">Queen</option>
+              <option value="K">King</option>
+            </select>
+            <select id="cpSuitSel" aria-label="Card suit">
+              <option value="">Suit</option>
+              <option value="hearts">Hearts</option>
+              <option value="clubs">Clubs</option>
+              <option value="diamonds">Diamonds</option>
+              <option value="spades">Spades</option>
+            </select>
+          </div>
+        </div>
+        <div class="person-divider">
+          <button type="button" class="person-pick" id="finderPickBtn"
+                  title="Load a saved birthday" aria-label="Load a saved birthday">
+            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 2h8v12l-4-3-4 3V2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          </button>
+          <button type="button" class="person-toggle" id="addSecondBtn"
+                  onclick="toggleSecond()"
+                  title="Add a second person for a relationship reading"
+                  aria-label="Add a second person for a relationship reading">
+            <span class="person-toggle-icon" id="personToggleIcon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><line x1="6" y1="12" x2="18" y2="12"/><line class="pt-v" x1="12" y1="6" x2="12" y2="18"/></svg></span>
+          </button>
+          <button type="button" class="dd-toggle" id="ddModeBtn"
+                  onclick="toggleCardPicker()"
+                  aria-expanded="false" aria-controls="finderCardPick"
+                  title="Pick a card directly"
+                  aria-label="Pick a card directly">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+        </div>
+        <div class="person-slot person-partner is-ghost" id="person2Wrap">
+          <div class="person-partner-fields">
+            <div class="finder-inputs">
+              <div class="fw-frame"><div class="fw-wheel" id="relDay2Wheel" tabindex="0" role="listbox" aria-label="Second person birth day"></div><div class="fw-wheel-cell"></div></div>
+              <div class="fw-frame"><div class="fw-wheel" id="relMonth2Wheel" tabindex="0" role="listbox" aria-label="Second person birth month"></div><div class="fw-wheel-cell"></div></div>
+            </div>
+            <div class="finder-dd-row">
+              <select id="relDay2" class="fw-bound" aria-label="Second person birth day"><option value="">DD</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option></select>
+              <select id="relMonth2" class="fw-bound" aria-label="Second person birth month">
+                <option value="">MM</option>
+                <option value="1">Jan</option><option value="2">Feb</option>
+                <option value="3">Mar</option><option value="4">Apr</option>
+                <option value="5">May</option><option value="6">Jun</option>
+                <option value="7">Jul</option><option value="8">Aug</option>
+                <option value="9">Sep</option><option value="10">Oct</option>
+                <option value="11">Nov</option><option value="12">Dec</option>
+              </select>
+            </div>
+            <!-- Partner's rank/suit card picker — mirror of person 1's; the same
+                 chevron (.finder-form.cp-on) reveals both. Choosing a rank AND a
+                 suit here resolves that card to a representative birthday and
+                 drives the relationship reading. Wired in js/cardsoflife.js. -->
+            <div class="finder-cardpick-row" id="finderCardPick2">
+              <select id="cpRankSel2" aria-label="Second person card rank">
+                <option value="">Rank</option>
+                <option value="A">Ace</option>
+                <option value="2">Two</option><option value="3">Three</option>
+                <option value="4">Four</option><option value="5">Five</option>
+                <option value="6">Six</option><option value="7">Seven</option>
+                <option value="8">Eight</option><option value="9">Nine</option>
+                <option value="10">Ten</option>
+                <option value="J">Jack</option><option value="Q">Queen</option>
+                <option value="K">King</option>
+              </select>
+              <select id="cpSuitSel2" aria-label="Second person card suit">
+                <option value="">Suit</option>
+                <option value="hearts">Hearts</option>
+                <option value="clubs">Clubs</option>
+                <option value="diamonds">Diamonds</option>
+                <option value="spades">Spades</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <div class="finder-result" id="finderResult">
+    <div class="finder-result-inner">
+      <div class="result-card-row">
+        <div class="spread-card result-pip-card" id="rFace"></div>
+        <div class="result-head-text">
+          <div class="result-name" id="rName"></div>
+          <div class="result-subtitle" id="rSubtitle"></div>
+        </div>
+        <div class="result-actions">
+          <button type="button" class="result-toggle result-reload is-inactive" id="rReload" onclick="restoreFinderPick()" title="Back to your finder card" aria-label="Restore the finder's card into this view"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button>
+          <button type="button" class="result-toggle result-olney is-inactive" id="rOlneyBtn" onclick="openOlneyPopup()" title="Open Richmond's 1893 reading" aria-label="Open Richmond's 1893 reading"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5.2C3 4.5 3.5 4 4.2 4H10c1.4 0 2.5 1.1 2.5 2.5V20c0-1.1-.9-2-2-2H4.2C3.5 18 3 17.5 3 16.8z"/><path d="M21 5.2C21 4.5 20.5 4 19.8 4H14c-1.4 0-2.5 1.1-2.5 2.5V20c0-1.1.9-2 2-2h6.3c.7 0 1.2-.5 1.2-1.2z"/></svg></button>
+          <button type="button" class="result-toggle result-share" id="rShare" onclick="copyFinderLink(this)" title="Copy link to this card" aria-label="Copy link to this card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
+          <button type="button" class="result-toggle result-collapse" id="rCollapse" onclick="toggleFinderCollapse()" title="Minimise" aria-label="Minimise card details" aria-expanded="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></button>
+        </div>
+      </div>
+      <div class="result-body">
+        <!-- The card's reading — shown by default; the minimise chevron in
+             .result-actions collapses the whole .result-body. (Suit + Numerology
+             live in the top #elements rows; the About/Essence chips were retired.) -->
+        <div class="ns-pop open" id="nsPop">
+          <div class="ns-detailwrap">
+            <div class="ns-detailmin">
+              <div class="ns-card" id="nsCardAbout">
+                <!-- About body — no sub-header (the chip label says "About",
+                     so an extra "About" heading on the body itself would just
+                     repeat). Light + Shadow below DO keep their headers. -->
+                <div class="ns-sub">
+                  <div class="result-kws" id="rKws"></div>
+                  <div class="result-personality" id="rPersonality"></div>
+                  <p class="vow-text" id="rVow"></p>
+                </div>
+                <div class="ns-sub">
+                  <h5 class="ns-sub-h">Light</h5>
+                  <div id="rStrengths"></div>
+                </div>
+                <div class="ns-sub">
+                  <h5 class="ns-sub-h">Shadow</h5>
+                  <div id="rChallenges"></div>
+                </div>
+              </div>
+              <!-- Life Script — lives INSIDE the .ns-detailmin so it unfurls
+                   together with the About tab and collapses to zero when the
+                   chip is inactive. (Suit + Numerology moved to the top
+                   #elements rows; the Essence tab was retired.) -->
+              <div class="result-life-script" id="rLifeScriptWrap">
+                <h4>Life Script</h4>
+                <div class="ls-grid" id="rLifeScript"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Olney 1893 reading — opens as a book-style popup from the finder's Olney button.
+       The panel itself (#rOlneyPanel) is rendered by _renderOlneyInto(R) just as before;
+       moving it out of .finder-result-inner means it no longer takes up vertical space
+       in the result panel and gets its own book-opening reveal. -->
+  <div class="olney-overlay" id="olneyOverlay" role="dialog" aria-modal="true" aria-label="Richmond's 1893 reading" hidden>
+    <div class="olney-book" id="olneyBook">
+      <button type="button" class="ccard-close olney-close" id="olneyClose" onclick="closeOlneyPopup()" aria-label="Close">×</button>
+      <button class="olney-nav olney-nav-prev" type="button" aria-label="Previous card" title="Previous card" onclick="olneyNavCard(-1)">&#8249;</button>
+      <button class="olney-nav olney-nav-next" type="button" aria-label="Next card" title="Next card" onclick="olneyNavCard(1)">&#8250;</button>
+      <div class="olney-book-inner">
+        <div class="olney-panel" id="rOlneyPanel"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rel-result" id="relResult">
+    <div class="finder-result-inner">
+      <div class="rel-note" id="relNote" style="display:none"></div>
+      <div class="rel-header">
+        <div class="rel-equation">
+          <div class="spread-card" id="relCard1"></div>
+          <span class="rel-eq-op">+</span>
+          <div class="spread-card" id="relCard2"></div>
+          <span class="rel-eq-op" id="relEqEquals">=</span>
+          <div class="spread-card rel-result-pip" id="relCardResult"></div>
+        </div>
+        <div class="rel-names">
+          <div class="rel-names-pair" id="relNamesPair"></div>
+          <div class="rel-result-name" id="relRName"></div>
+          <div class="result-subtitle" id="relRSubtitle"></div>
+        </div>
+        <div class="result-meta" id="relRMeta">
+          <div class="ccard-planets" id="relRPlanets"></div>
+          <div class="result-vals" id="relRVals"></div>
+          <div class="result-displace" id="relRDisplace"></div>
+        </div>
+        <div class="result-actions">
+          <button type="button" class="result-toggle result-reload is-inactive" id="relReload" onclick="restoreFinderPick()" title="Back to your finder card" aria-label="Restore the finder's relationship card into this view"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button>
+          <button type="button" class="result-toggle result-olney is-inactive" id="relOlneyBtn" onclick="openOlneyPopup()" title="Open Richmond's 1893 reading" aria-label="Open Richmond's 1893 reading"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5.2C3 4.5 3.5 4 4.2 4H10c1.4 0 2.5 1.1 2.5 2.5V20c0-1.1-.9-2-2-2H4.2C3.5 18 3 17.5 3 16.8z"/><path d="M21 5.2C21 4.5 20.5 4 19.8 4H14c-1.4 0-2.5 1.1-2.5 2.5V20c0-1.1.9-2 2-2h6.3c.7 0 1.2-.5 1.2-1.2z"/></svg></button>
+          <button type="button" class="result-toggle result-share" id="relShare" onclick="copyFinderLink(this)" title="Copy link to this relationship" aria-label="Copy link to this relationship"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
+          <button type="button" class="result-toggle result-collapse" id="relCollapse" onclick="toggleRelCollapse()" title="Minimise" aria-label="Minimise relationship details" aria-expanded="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></button>
+        </div>
+        <div class="rel-result-kws" id="relRKws"></div>
+      </div>
+      <div class="result-dates" id="relRDates" style="display:none; text-align:center; margin: .5rem 0 .75rem;"></div>
+      <div class="rel-bond" id="relBond" style="display:none"></div>
+      <div class="rel-conn-wrap" id="relConnections" style="display:none">
+        <h4 class="rel-conn-h">Connections</h4>
+        <div id="relConnBody"></div>
+      </div>
+      <div class="result-body">
+        <div class="result-left">
+          <div class="result-box">
+            <h4>About</h4>
+            <div class="result-personality" id="relRPersonality"></div>
+            <p class="vow-text" id="relRVow"></p>
+          </div>
+        </div>
+        <div class="result-right">
+          <div class="result-grid">
+            <div class="result-box">
+              <h4>Light</h4>
+              <div id="relRStrengths"></div>
+            </div>
+            <div class="result-box">
+              <h4>Shadow</h4>
+              <div id="relRChallenges"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+    </div><!-- /.section-bodymin -->
+  </div><!-- /.section-bodywrap -->
+</section>
+
+<!-- ── Annual Spreads ───────────────────────────────────────────── -->
+<section class="spreads page-section section-open" id="spreads">
+  <button class="section-toggle" type="button"
+          aria-expanded="true" aria-controls="spreadsBody"
+          onclick="toggleSection('spreads')">
+    <span class="section-label">Quadrations</span>
+    <svg class="section-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+  </button>
+  <div class="section-bodywrap">
+    <div class="section-bodymin" id="spreadsBody">
+  <div class="container">
+    <div class="spreads-top">
+      <div class="q-quad-header">
+        <div class="age-selector">
+          <div class="age-controls-wrap qm-annual">
+            <div class="q-age-slot">
+              <div class="age-controls">
+                <button class="age-btn" id="ageDown" aria-label="Previous age">−</button>
+                <input type="number" id="ageInput" class="age-input" min="0" max="89" value="0" aria-label="Age">
+                <button class="age-btn" id="ageUp" aria-label="Next age">+</button>
+              </div>
+              <span class="q-mode-current" id="qModeCurrent" aria-live="polite">Age</span>
+            </div>
+          </div>
+        </div>
+        <div class="q-settings-wrap">
+          <button type="button" class="q-disp-icon" id="qSettingsBtn"
+                  aria-haspopup="true" aria-expanded="false" aria-controls="qSettingsPanel"
+                  aria-label="Quadrations settings" title="Settings">⚙</button>
+        </div>
+      </div>
+      <div class="q-settings-panel" id="qSettingsPanel">
+        <div class="q-settings-inner">
+          <div class="q-setting-row q-setting-row--mode">
+            <span class="q-setting-label">View</span>
+            <div class="q-mode-labels">
+              <button class="q-mode-label" id="qSpiritBtn" onclick="qSetMode('spirit')">Spirit</button>
+              <button class="q-mode-label active" id="qAnnualBtn" onclick="qSetMode('annual')">Age</button>
+              <button class="q-mode-label" id="qLifeBtn" onclick="qSetMode('life')">Life</button>
+            </div>
+          </div>
+          <div class="q-setting-row">
+            <span class="q-setting-label">Alternate court cards</span>
+            <button type="button" class="q-switch" id="qAlt" role="switch" aria-checked="false"
+                    aria-label="Alternate court cards" onclick="qToggleAltCourts()"><span class="q-switch-knob"></span></button>
+          </div>
+          <div class="q-setting-row">
+            <span class="q-setting-label">Show displacements</span>
+            <button type="button" class="q-switch" id="qDisp" role="switch" aria-checked="false"
+                    aria-label="Show displacements" onclick="qToggleDisplace()"><span class="q-switch-knob"></span></button>
+          </div>
+          <div class="q-setting-row q-setting-row--size">
+            <span class="q-setting-label">Card size</span>
+            <div class="q-size-row" role="group" aria-label="Card size">
+              <span class="q-size-ico q-size-ico--sm" aria-hidden="true">A</span>
+              <input type="range" id="qSizeSlider" class="q-size-slider" min="60" max="150" step="5" value="100"
+                     aria-label="Card size" title="Card size" oninput="qSetCardSize(this.value)">
+              <span class="q-size-ico q-size-ico--lg" aria-hidden="true">A</span>
+              <span class="q-size-val" id="qSizeVal">100%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="spread-layout">
+      <div class="spread-wrap">
+        <div class="spread-stack">
+          <div id="annualGrid" class="spread-grid"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+    </div><!-- /.section-bodymin -->
+  </div><!-- /.section-bodywrap -->
+</section>
+
+<!-- ── Personal Cards (Birth / Yearly / 52-day / Daily) ──────────── -->
+<section class="personal-cards page-section section-open" id="personalCards">
+  <button class="section-toggle" type="button"
+          aria-expanded="true" aria-controls="personalCardsBody"
+          onclick="toggleSection('personalCards')">
+    <span class="section-label">In Time</span>
+    <svg class="section-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+  </button>
+  <div class="section-bodywrap">
+    <div class="section-bodymin" id="personalCardsBody">
+  <div class="container">
+    <div class="spreads-top">
+      <div class="birth-actions">
+        <button class="birth-btn icon-btn" id="birthAddBtn" type="button" title="Add a birthday" aria-label="Add a birthday"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+        <button class="birth-btn icon-btn" id="birthListBtn" type="button" title="Saved birthdays" aria-label="Saved birthdays"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 2h8v12l-4-3-4 3V2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span class="birth-btn-badge" id="birthListBadge"></span></button>
+      </div>
+    </div>
+    <div class="pcards-row" id="pcardsRow"></div>
+    <div class="pcards-empty" id="pcardsEmpty" style="display:none"></div>
+    <div class="pcards-date-bar" id="pcardsDateBar">
+      <button class="pdate-nav" type="button" data-shift-year="-1"  title="−1 year"  aria-label="Back one year">«</button>
+      <button class="pdate-nav" type="button" data-shift-month="-1" title="−1 month" aria-label="Back one month">‹‹</button>
+      <button class="pdate-nav" type="button" data-shift-day="-1"   title="Previous day" aria-label="Previous day">‹</button>
+      <button class="pdate-label" id="pcardsDateLabel" type="button" title="Pick a date" aria-label="Pick a date"></button>
+      <input class="pdate-input" id="pcardsDateInput" type="date" tabindex="-1" aria-hidden="true" />
+      <button class="pdate-nav" type="button" data-shift-day="1"    title="Next day"    aria-label="Next day">›</button>
+      <button class="pdate-nav" type="button" data-shift-month="1"  title="+1 month"    aria-label="Forward one month">››</button>
+      <button class="pdate-nav" type="button" data-shift-year="1"   title="+1 year"     aria-label="Forward one year">»</button>
+    </div>
+    <button class="pdate-today" id="pcardsTodayBtn" type="button" title="Reset to today">↻ Today</button>
+  </div>
+    </div><!-- /.section-bodymin -->
+  </div><!-- /.section-bodywrap -->
+</section>
+
+<!-- ── Tools ─────────────────────────────────────────────────────── -->
+<section class="tools-section page-section section-open" id="tools">
+  <button class="section-toggle" type="button"
+          aria-expanded="true" aria-controls="toolsBody"
+          onclick="toggleSection('tools'); onToolsSectionToggle()">
+    <span class="section-label">Tools</span>
+    <svg class="section-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+  </button>
+  <div class="section-bodywrap">
+    <div class="section-bodymin" id="toolsBody">
+  <div class="container">
+    <div class="tools-pop" id="toolsPop">
+    <div class="tools-grid">
+      <button class="tool-card-btn is-toggle" id="browseToolBtn" aria-expanded="false" aria-controls="browsePanel" onclick="toggleToolPanel('browse')"><span class="tool-card-text"><span class="tool-card-name">The Full Deck</span></span></button>
+      <button class="tool-card-btn is-toggle" id="calToolBtn" aria-expanded="false" aria-controls="calPanel" onclick="toggleToolPanel('cal')"><span class="tool-card-text"><span class="tool-card-name">Calendar</span></span></button>
+      <button class="tool-card-btn is-toggle" id="astroToolBtn" aria-expanded="false" aria-controls="astroPanel" onclick="toggleToolPanel('astro')"><span class="tool-card-text"><span class="tool-card-name">Astro</span></span></button>
+      <button class="tool-card-btn is-toggle" id="syncToolBtn" aria-expanded="false" aria-controls="syncPanel" onclick="toggleToolPanel('sync')"><span class="tool-card-text"><span class="tool-card-name">Synchronicities</span></span></button>
+    </div>
+
+    <div class="tool-panels">
+
+      <!-- Inline panel: Year Calendar (the birthday → card grid, moved here from the Finder) -->
+      <div class="tool-panel" id="calPanel" role="region" aria-labelledby="calToolBtn">
+        <div class="cal-modal tool-modal" style="max-width:600px;">
+          <div class="cal-scroll-wrap">
+            <div class="cal-grid-main" id="calGrid"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Inline panel: Astrology (lazy-loaded) -->
+      <div class="tool-panel" id="astroPanel" role="region" aria-labelledby="astroToolBtn">
+        <div class="cal-modal tool-modal" style="max-width:860px;">
+          <div id="astroContent">
+            <p class="astro-intro-note">Draw a chart below to see planetary positions at birth — add a birthplace and you'll also get your exact solar time at birth.</p>
+            <div class="astro-form" id="astroForm">
+              <!-- Row 1: Day / Month / Year / Time -->
+              <div class="astro-form-row">
+                <label class="astro-field"><span class="astro-field-lbl">Day</span>
+                  <select id="aDay" aria-label="Day"></select></label>
+                <label class="astro-field"><span class="astro-field-lbl">Month</span>
+                  <select id="aMonth" aria-label="Month"></select></label>
+                <label class="astro-field"><span class="astro-field-lbl">Year</span>
+                  <input id="aYear" type="number" min="1700" max="2200" value="1990" aria-label="Year" /></label>
+                <label class="astro-field"><span class="astro-field-lbl">Time</span>
+                  <input id="aTime" type="time" value="12:00" aria-label="Time" /></label>
+              </div>
+              <!-- Row 2: Birthplace + Draw -->
+              <div class="astro-form-row">
+                <label class="astro-field astro-field-place"><span class="astro-field-lbl">Birthplace</span>
+                  <input id="aPlace" type="text" list="aTzList" placeholder="city or zone" autocomplete="off" aria-label="Birthplace" />
+                  <datalist id="aTzList"></datalist></label>
+                <button class="btn btn--gold astro-draw-btn" id="aDrawBtn" onclick="astroLiteDraw()">Draw</button>
+              </div>
+            </div>
+            <div id="astroLoading" style="display:none;text-align:center;padding:2rem;color:var(--muted);font-size:.85rem;">Loading astronomy engine…</div>
+            <div id="astroResult" style="display:none;">
+              <div class="astro-solar-strip" id="aSolarStrip"></div>
+              <div class="astro-birth-card" id="aBirthCard"></div>
+              <div class="astro-table-controls">
+                <div class="astro-zodiac-seg" role="group" aria-label="Zodiac">
+                  <button type="button" class="astro-zod-btn" id="aZod-tropical" aria-pressed="true"  title="Equal 30° signs anchored to the seasons — the Western tradition" onclick="astroLiteSetZodiac('tropical')">Seasonal</button>
+                  <button type="button" class="astro-zod-btn" id="aZod-lahiri"   aria-pressed="false" title="Signs aligned to the actual constellations (offset by the ayanamsa) — the sidereal / Vedic tradition" onclick="astroLiteSetZodiac('lahiri')">Constellational</button>
+                </div>
+                <button class="astro-more-btn" id="aMoreBtn" type="button" aria-expanded="false" onclick="astroLiteToggleExtras()" title="Show more" aria-label="Show more planets"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></button>
+              </div>
+              <div class="astro-table-wrap">
+                <table class="astro-pl-table" id="aPlTable"></table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Inline panel: All Cards -->
+      <div class="tool-panel" id="browsePanel" role="region" aria-labelledby="browseToolBtn">
+        <div class="cal-modal tool-modal">
+          <div class="sv-calc">
+            <div class="sv-calc-inputs">
+              <label class="sv-field"><span class="sv-field-lbl">Day</span><input type="number" id="svDay" min="1" max="31" step="1" inputmode="numeric" placeholder="DD" aria-label="Day of month" oninput="svCalcUpdate()"></label>
+              <span class="sv-slash" aria-hidden="true">/</span>
+              <label class="sv-field"><span class="sv-field-lbl">Month</span><input type="number" id="svMonth" min="1" max="12" step="1" inputmode="numeric" placeholder="MM" aria-label="Month" oninput="svCalcUpdate()"></label>
+
+              <!-- Suit filter, collapsed to one trigger icon (was its own row of
+                   4 always-visible chips below) — pops a small menu on click. -->
+              <div class="suit-menu" id="suitMenu">
+                <button class="suit-filter-btn suit-menu-btn" id="suitMenuBtn" type="button"
+                        aria-haspopup="true" aria-expanded="false" aria-label="Filter by suit"
+                        onclick="toggleSuitMenu()">
+                  <span class="suit-menu-icon" id="suitMenuIcon">
+                    <span class="hearts">♥</span><span class="clubs">♣</span><span class="diamonds">♦</span><span class="spades">♠</span>
+                  </span>
+                </button>
+                <div class="suit-menu-pop" id="suitMenuPop">
+                  <button class="suit-filter-btn hearts"   id="sf-hearts"   aria-label="Filter by hearts"   aria-pressed="false" onclick="setBrowseSuit('hearts')">♥</button>
+                  <button class="suit-filter-btn clubs"    id="sf-clubs"    aria-label="Filter by clubs"    aria-pressed="false" onclick="setBrowseSuit('clubs')">♣</button>
+                  <button class="suit-filter-btn diamonds" id="sf-diamonds" aria-label="Filter by diamonds" aria-pressed="false" onclick="setBrowseSuit('diamonds')">♦</button>
+                  <button class="suit-filter-btn spades"   id="sf-spades"   aria-label="Filter by spades"   aria-pressed="false" onclick="setBrowseSuit('spades')">♠</button>
+                </div>
+              </div>
+            </div>
+            <p class="browse-sv-formula" id="svFormula" aria-live="polite">Solar Value &nbsp;=&nbsp; <strong>55</strong> &nbsp;&minus;&nbsp; (2 &times; month &nbsp;+&nbsp; day)</p>
+          </div>
+          <div class="spread-wrap">
+            <div class="spread-grid" id="browseGrid"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Inline panel: Synchronicities (placeholder — the numeric correspondences
+           between the deck and the calendar, music, etc. Content is fully drafted
+           and verified in dev/Book of Life/synchronicities-list.md but not yet
+           wired in; this note stands in until it's ready. -->
+      <div class="tool-panel" id="syncPanel" role="region" aria-labelledby="syncToolBtn">
+        <div class="cal-modal tool-modal">
+          <p class="sync-wip">This section is under construction — check back soon.</p>
+        </div>
+      </div>
+
+    </div>
+    </div><!-- /tools-pop -->
+  </div>
+    </div><!-- /.section-bodymin -->
+  </div><!-- /.section-bodywrap -->
+</section>
+
+<!-- ── Compare Card Popup ───────────────────────────────────────── -->
+<div class="ccard-overlay" id="ccardOverlay">
+  <div class="ccard-popup" id="ccardPopup">
+    <button class="ccard-close" type="button" aria-label="Close" title="Close" onclick="event.stopPropagation(); closeCompareCard()">✕</button>
+    <button class="ccard-nav ccard-nav-prev" type="button" aria-label="Previous card" title="Previous card" onclick="event.stopPropagation(); ccNavCard(-1)">&#8249;</button>
+    <button class="ccard-nav ccard-nav-next" type="button" aria-label="Next card" title="Next card" onclick="event.stopPropagation(); ccNavCard(1)">&#8250;</button>
+    <div class="ccard-solar" id="ccSolarWrap">
+      <span class="ccard-solar-value" id="ccSolar">—</span>
+    </div>
+    <div class="ccard-header">
+      <div class="spread-card" id="ccFace"></div>
+      <div class="ccard-info">
+        <div class="ccard-name"     id="ccName"></div>
+        <div class="ccard-subtitle" id="ccSubtitle"></div>
+        <div class="ccard-stat-value ccard-planets" id="ccPlanets"></div>
+        <div class="ccard-stat-value ccard-displace" id="ccDisplace"></div>
+        <div class="ccard-dates"    id="ccDates"></div>
+      </div>
+    </div>
+    <div class="ccard-body">
+      <div class="ccard-personality" id="ccPersonality"></div>
+    </div>
+    <div class="ccard-footer">
+      <button class="ccard-load-btn secondary" onclick="event.stopPropagation(); loadCardPick()">Load in Quadrations</button>
+      <button class="ccard-load-btn" onclick="event.stopPropagation(); loadCardInFinder()">Load in Finder</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Saved birthdays (body-level overlay; escapes the Your Cards
+     section's overflow:hidden so the list scrolls, and holds add +
+     import/export) ─────────────────────────────────────────────── -->
+<div class="bday-overlay" id="bdayOverlay" role="dialog" aria-modal="true" aria-labelledby="bdayTitle">
+  <div class="bday-modal" id="bdayModal">
+    <div class="bday-head">
+      <svg class="bday-head-mark" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 2h8v12l-4-3-4 3V2z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+      <h2 class="bday-title" id="bdayTitle">Saved birthdays</h2>
+      <span class="bday-count" id="bdayCount" aria-hidden="true"></span>
+      <button class="bday-close" id="bdayClose" type="button" aria-label="Close" title="Close">✕</button>
+    </div>
+    <div class="bday-toolbar">
+      <button class="birth-btn bday-add" id="bdayAddBtn" type="button">＋ Add birthday</button>
+      <div class="bday-io">
+        <button class="birth-btn" id="bdayImportBtn" type="button" title="Import a saved birthdays file">Import</button>
+        <button class="birth-btn" id="bdayExportBtn" type="button" title="Download your saved birthdays">Export</button>
+      </div>
+    </div>
+    <div class="bday-target" id="bdayTarget" hidden>
+      <span class="bday-target-label">For</span>
+      <div class="bday-seg" role="group" aria-label="Which person to fill">
+        <button type="button" class="bday-seg-btn" id="bdayTargetSelf" data-target="self">You</button>
+        <button type="button" class="bday-seg-btn" id="bdayTargetPartner" data-target="partner">Partner</button>
+      </div>
+    </div>
+    <div class="birth-add-panel bday-addform" id="birthAddPanel">
+      <div class="birth-add-row">
+        <input class="dd" id="baDay"   type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" placeholder="DD" aria-label="Day" />
+        <span class="sep">/</span>
+        <input class="mm" id="baMonth" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" placeholder="MM" aria-label="Month" />
+        <span class="sep">/</span>
+        <input class="yy" id="baYear"  type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="YYYY" aria-label="Year" />
+        <button class="birth-add-save" id="birthAddSave" type="button" title="Save birthday" aria-label="Save birthday"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M1 1H10L14 5V15H1ZM3 2H8V6.5H3ZM3 10.5H13V14H3Z"/></svg></button>
+      </div>
+      <input class="birth-add-name" id="baName" type="text" placeholder="Name" maxlength="60" />
+      <div class="birth-add-error" id="birthAddError" role="alert" aria-live="assertive"></div>
+    </div>
+    <div class="bday-list" id="birthPanel"></div>
+    <p class="bday-note">Saved in this browser only. Export to back up or move to another device.</p>
+    <input type="file" id="bdayImportFile" accept="application/json,.json" hidden />
+  </div>
+</div>
+
+<script src="js/cardsdata.js"></script>
+<script src="js/richmonddata.js"></script>
+<!-- The five period-reading data files (daily / period / year / sevenyear /
+     thirteenyear carddata, ~490KB together) are LAZY-LOADED by
+     _loadPeriodScripts() in js/cardsoflife.js — warmed on first pointerover of
+     the Your Cards row, awaited by openPeriodReading — the same pattern as the
+     astrology engine. Only the popup's {period,planet} readings need them. -->
+<script src="js/planetdata.js"></script>
+<script src="js/cardsoflife.js"></script>
+
+<!-- ── Footer ───────────────────────────────────────────────────── -->
+</main>
+<footer class="site-footer">
+  <div class="sf-inner"></div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dozenal Calculator — mysticscards.space</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="icon" href="favicon.ico" sizes="any" />
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#100c1e" />
+<meta name="description" content="An exact-arithmetic calculator in base twelve, with binary, decimal, dozenal and hexadecimal modes." />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="mysticscards.space" />
+<meta property="og:title" content="Dozenal Calculator" />
+<meta property="og:description" content="An exact-arithmetic calculator in base twelve, with binary, decimal, dozenal and hexadecimal modes." />
+<meta property="og:url" content="https://mysticscards.space/calculator.html" />
+<meta property="og:image" content="https://mysticscards.space/assets/og-image.png" />
+<meta name="twitter:card" content="summary" />
+<meta name="version" content="1.5" />
+<link rel="canonical" href="https://mysticscards.space/calculator.html" />
+<link rel="stylesheet" href="css/site.css" />
+<link rel="stylesheet" href="css/calculator.css" />
+</head>
+<body class="starry">
+<canvas class="stars-bg" aria-hidden="true"></canvas>
+<script src="js/stars.js"></script>
+<script src="js/site.js"></script>
+  <main class="calc-stage">
+  <h1 class="vh">Dozenal Calculator</h1>
+  <div class="calc">
+    <div class="modebar">
+      <button class="mode" data-base="2">BIN</button>
+      <button class="mode" data-base="10">DEC</button>
+      <button class="mode active" data-base="12">DOZ</button>
+      <button class="mode" data-base="16">HEX</button>
+    </div>
+    <div class="screen">
+      <div class="expr" id="expr">&nbsp;</div>
+      <div class="main" id="calcMain"><span id="calcMainText">0</span></div>
+    </div>
+    <div class="grid">
+      <button class="fn" data-act="clear">C</button>
+      <button class="fn" data-act="back" aria-label="Backspace">⌫</button>
+      <button class="fn" data-act="sign" aria-label="Toggle sign">±</button>
+      <button class="op" data-op="div">÷</button>
+
+      <button data-d="7">7</button>
+      <button data-d="8">8</button>
+      <button data-d="9">9</button>
+      <button class="op" data-op="mul">×</button>
+
+      <button data-d="4">4</button>
+      <button data-d="5">5</button>
+      <button data-d="6">6</button>
+      <button class="op" data-op="sub">−</button>
+
+      <button data-d="1">1</button>
+      <button data-d="2">2</button>
+      <button data-d="3">3</button>
+      <button class="op" data-op="add">+</button>
+
+      <button data-d="0">0</button>
+      <button class="digit-ab" data-d="A">A</button>
+      <button class="digit-ab" data-d="B">B</button>
+      <button data-d=".">.</button>
+
+      <button class="digit-hex" data-d="C">C</button>
+      <button class="digit-hex" data-d="D">D</button>
+      <button class="digit-hex" data-d="E">E</button>
+      <button class="digit-hex" data-d="F">F</button>
+
+      <button class="eq" data-act="equals">=</button>
+    </div>
+    <div class="conv-panel">
+      <div class="conv" id="conv"></div>
+      <div class="conv2" id="conv2"></div>
+      <div class="conv2" id="conv3"></div>
+    </div>
+  </div>
+
+  <div class="sha">
+    <div class="sha-title">SHA-256</div>
+    <div class="sha-row">
+      <input class="sha-input" id="shaInput" type="text" placeholder="hex bytes — e.g. deadbeef" spellcheck="false" />
+      <button class="sha-btn ghost" id="shaFromCalc" title="Copy the calculator's value (as hex) into this box">From calc</button>
+      <button class="sha-btn" id="shaBtn">Hash</button>
+    </div>
+    <div class="sha-error" id="shaErr"></div>
+    <div class="sha-output" id="shaOutput">
+      <div class="sha-out-row"><span class="sha-tag">HEX</span><span class="sha-val hex" id="shaHex"></span></div>
+      <div class="sha-out-row"><span class="sha-tag">BIN</span><span class="sha-val" id="shaBin"></span></div>
+    </div>
+  </div>
+  </main>
+
+<script src="js/dozenal.js"></script>
+
+
+<footer class="site-footer"><div class="sf-inner"></div></footer>
+<script src="js/calculator.js"></script>
+</body>
+</html>

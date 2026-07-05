@@ -1,0 +1,705 @@
+button { cursor: pointer; border: none; background: none; font: inherit; }
+    /* ── Oracle ── */
+    .oracle { margin-bottom: 3rem; text-align: center; }
+    .inquiry-top {
+      display: flex; flex-direction: column; gap: 0.6rem;
+      max-width: 640px; margin: 0 auto; text-align: left;
+    }
+    .inquiry-top .section-label { margin-bottom: 0; padding-top: 0; }
+    .inquiry-wrap { max-width: 640px; min-width: 0; }
+    .question-wrap { margin-bottom: 1.5rem; }
+    .question-input {
+      width: 100%; padding: 0.85rem 1rem; font-family: var(--sans); font-size: 0.95rem;
+      background: var(--surface); border: 1px solid var(--rule); border-radius: 8px;
+      resize: none; outline: none; color: var(--text); line-height: 1.6;
+    }
+    .question-input:focus { border-color: var(--rule-strong); }
+    .question-input::placeholder { color: var(--muted); font-style: italic; }
+    .cast-actions { display: flex; gap: 0.6rem; margin-top: 0.75rem; justify-content: center; align-items: flex-start; }
+    .cast-ctl { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; }
+    .cast-btn {
+      padding: 0.7rem 1.8rem; min-height: 44px; background: var(--gold); color: var(--accent);
+      border: 1px solid var(--gold); border-radius: 8px; font-size: 0.78rem; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer;
+      transition: opacity var(--ease), background var(--ease), transform var(--ease);
+      display: inline-flex; align-items: center; justify-content: center;
+      text-align: center; line-height: 1;
+    }
+    .cast-btn:hover { opacity: 0.82; }
+    .cast-btn:active { transform: scale(.96); }
+    .cast-btn:disabled { opacity: 0.35; cursor: default; }
+    @media (prefers-reduced-motion: reduce) { .cast-btn:active { transform: none; } }
+    /* Cast ceremony: a brief gold shimmer on the sparkle glyph synced to the
+       click — reuses castPulse's glow language (a gold glow that swells and
+       fades, same rgb 181,134,74), adapted to SVG via drop-shadow. Once per
+       click, never loops; retriggered from castOne() in js/iching.js. */
+    @keyframes castSpark {
+      0%   { filter: drop-shadow(0 0 0 rgba(181,134,74,0));   transform: scale(1); }
+      35%  { filter: drop-shadow(0 0 4px rgba(181,134,74,.9)); transform: scale(1.16); }
+      100% { filter: drop-shadow(0 0 0 rgba(181,134,74,0));   transform: scale(1); }
+    }
+    .cast-spark { transform-box: fill-box; transform-origin: center; }
+    .cast-spark.spark { animation: castSpark .45s ease; }
+    @media (prefers-reduced-motion: reduce) { .cast-spark.spark { animation: none; } }
+    .cast-btn-alt { background: transparent; color: var(--gold-ink); border-color: var(--rule-strong); }
+    .cast-btn-alt:hover { opacity: 1; background: var(--surface-alt); color: var(--text); }
+    .cast-btn-icon {
+      width: 44px; height: 44px; padding: 0; flex-shrink: 0;
+      font-size: 1.05rem; letter-spacing: 0; text-transform: none;
+    }
+    /* History row */
+    .hist-wrap { position: relative; }
+    .hist-panel {
+      position: absolute; top: calc(100% + 6px); right: 0;
+      background: var(--surface); border: 1px solid var(--rule-strong); border-radius: 10px;
+      box-shadow: 0 6px 24px rgba(0,0,0,.13); z-index: 300;
+      min-width: 300px; max-width: calc(100vw - 32px);
+      max-height: 340px; overflow-y: auto;
+      /* Fade/slide open like the header .sh-nav, rather than a display flip.
+         visibility toggles instantly on open, deferred on close so the panel
+         stays reachable through its fade-out. */
+      opacity: 0; visibility: hidden; pointer-events: none;
+      transform: translateY(-6px);
+      transition: opacity .2s ease, transform .25s ease, visibility 0s linear .25s;
+    }
+    .hist-panel.open {
+      opacity: 1; visibility: visible; pointer-events: auto;
+      transform: none;
+      transition: opacity .2s ease, transform .25s ease, visibility 0s linear 0s;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .hist-panel { transition: visibility 0s; transform: none; }
+    }
+    .hist-item {
+      display: flex; align-items: flex-start; gap: .5rem;
+      padding: .7rem 1rem; border-bottom: 1px solid var(--rule); cursor: pointer;
+    }
+    .hist-item:last-child { border-bottom: none; }
+    .hist-item:hover { background: var(--surface-alt); }
+    .hist-item-body { flex: 1; min-width: 0; }
+    .hist-date { font-size: .64rem; color: var(--muted); letter-spacing: .05em; margin-bottom: .18rem; text-transform: uppercase; }
+    .hist-q { font-size: .84rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-style: italic; }
+    .hist-hex { font-size: .68rem; color: var(--gold); margin-top: .2rem; font-family: var(--mono); }
+    .hist-del { flex-shrink: 0; font-size: .72rem; color: var(--muted); padding: 3px 7px; border-radius: 5px; line-height: 1; }
+    .hist-del:hover { color: var(--text); background: var(--rule); }
+    .hist-empty { padding: 1.2rem; text-align: center; font-size: .84rem; color: var(--muted); font-style: italic; }
+    .hist-foot {
+      display: flex; gap: .4rem; align-items: center;
+      padding: .45rem .55rem; border-top: 1px solid var(--rule);
+    }
+    .hist-foot button {
+      padding: .3rem .7rem; border: 1px solid var(--border); border-radius: 6px;
+      background: var(--surface-alt); color: var(--secondary);
+      font-family: var(--sans); font-size: .68rem; font-weight: 600; cursor: pointer;
+    }
+    .hist-foot button:hover { background: var(--gold-light); color: var(--text); }
+    .hist-foot-msg { font-size: .66rem; color: var(--muted); margin-left: auto; white-space: nowrap; }
+    .cast-stage { display: flex; flex-direction: column; gap: 1.5rem; align-items: center; width: 100%; }
+    .cards-row {
+      display: flex; flex-direction: row; gap: clamp(3px, 1.4vw, 0.5rem); flex-wrap: nowrap;
+      align-items: flex-start; min-height: 0; justify-content: center;
+      width: 100%; max-width: 460px; margin: 0 auto;
+    }
+    /* All six cards stay on one line: each shrinks to fit, capped at the
+       full 68px on wider screens. The card art is container-query sized so it
+       scales with the card. */
+    .cards-row .card-line { flex: 1 1 0; min-width: 0; max-width: 68px; }
+    .cards-row .spread-card { width: 100%; height: auto; aspect-ratio: 68 / 95; }
+    .cast-figs { gap: 1.25rem; align-items: flex-start; justify-content: center; }
+
+    /* ── Ace suit-pulls (set aside during the cast, shown above the answer) ── */
+    .pull-banner {
+      display: flex;
+      flex-direction: column;
+      gap: .6rem;
+      width: 100%;
+      max-width: 560px;
+      margin: 1.4rem auto 0;
+    }
+    .pull-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: var(--surface);
+      border: 1px solid var(--rule);
+      border-left: 3px solid var(--gold);
+      border-radius: 12px;
+      padding: .8rem 1.1rem;
+    }
+    .pull-card { width: 46px; height: 64px; flex: none; cursor: default; }
+    .pull-pos {
+      font-weight: 400;
+      font-size: .82rem;
+      color: var(--muted);
+      letter-spacing: .02em;
+    }
+    .pull-name {
+      font-family: var(--serif);
+      font-size: 1.05rem;
+      font-weight: 600;
+      letter-spacing: .01em;
+    }
+    .pull-desc {
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: .98rem;
+      color: var(--secondary);
+      line-height: 1.45;
+    }
+    .fig-col { display: flex; flex-direction: column; align-items: center; gap: .65rem; }
+    .card-line { display: flex; flex-direction: column; align-items: center; gap: .3rem; }
+    .cl-no { font-family: var(--mono); font-size: .58rem; color: var(--muted); text-align: center; }
+    .cl-type { display: flex; justify-content: center; align-items: center; min-height: .6rem; color: rgba(255,255,255,.78); }
+    .cl-type.changing { color: var(--gold); }
+
+    /* Cast cards — mysticscards style (matches quadration.html) */
+    .spread-card {
+      width: 68px; height: 95px; flex-shrink: 0;
+      background: var(--card-paper); border: 1px solid #e3d8c4;  /* match the Cards of Life / site.css card border */
+      border-radius: var(--r-md);
+      position: relative; overflow: hidden; container-type: inline-size;
+      cursor: default;
+      transition: box-shadow .18s ease;
+    }
+    /* Empty line slot, shown before and between draws */
+    .spread-card.slot {
+      background: transparent;
+      border-style: dashed;
+      border-color: var(--rule-strong);
+    }
+    /* ── Flip-deal ─────────────────────────────────────────────────
+       A cast card lands face-DOWN (the shared .card-back, css/site.css) and
+       turns over to reveal its face. The slot becomes a 3D flip frame:
+       .ck-front = the card face, .ck-back = the shared card-back, .ck-flip
+       spins them from rotateY(180deg) (back up) to 0 (face up). */
+    .spread-card.ck-host {
+      background: transparent; border: 0; overflow: visible;
+      perspective: 600px;
+    }
+    .spread-card.ck-host.changing { box-shadow: none; }   /* ring reveals with the face */
+    .ck-flip {
+      position: absolute; inset: 0; transform-style: preserve-3d;
+      border-radius: var(--r-md);
+    }
+    .ck-flip.dealing { animation: ckDeal .72s cubic-bezier(.2,.8,.25,1) backwards; }
+    /* No `opacity` in these frames ON PURPOSE: an animated opacity composites the
+       element as a group, which FLATTENS its preserve-3d subtree and lets the face
+       show through the back. The drop-in + turn carry the entrance instead. Every
+       frame also keeps the SAME transform function list so the rotation stays true
+       3D (a mismatched list forces flattening matrix interpolation). */
+    @keyframes ckDeal {
+      0%   { transform: rotateY(180deg) translateY(-9px) scale(.95); }   /* drop in, face-down */
+      26%  { transform: rotateY(180deg) translateY(0)    scale(1); }     /* back landed */
+      50%  { transform: rotateY(180deg) translateY(0)    scale(1); }     /* hold the back — the beat */
+      100% { transform: rotateY(0deg)   translateY(0)    scale(1); }     /* turn over to the face */
+    }
+    .ck-side {
+      position: absolute; inset: 0;
+      backface-visibility: hidden; -webkit-backface-visibility: hidden;
+      border-radius: var(--r-md); overflow: hidden;
+    }
+    .ck-front { background: var(--card-paper); border: 1px solid #e3d8c4; }
+    .ck-host.changing .ck-front { box-shadow: inset 0 0 0 2px var(--gold); }
+    .ck-back { transform: rotateY(180deg); }
+    @media (prefers-reduced-motion: reduce) {
+      /* No spin — hold the face up and just fade it in (no back flash). */
+      .ck-flip.dealing { animation: ckFade .3s ease backwards; transform: none; }
+      @keyframes ckFade { from { opacity: 0; } to { opacity: 1; } }
+    }
+    .spread-card.hearts, .spread-card.diamonds { color: var(--red); }
+    .spread-card.clubs, .spread-card.spades { color: var(--card-dark); }
+    /* Court figures have a transparent body, so they sit on the parchment card
+       face like the number cards (this deck has no joker). */
+    .spread-card.changing { box-shadow: 0 0 0 2px var(--gold); }
+    /* Card internals (corners, indices, pips, court art + court pips) inherit
+       from css/site.css — the same cqw-based layout as Cards of Life. (A px-tuned
+       variant used to live here; replaced for a consistent look across pages.) */
+    .hex-result { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+    /* Caption under each selectable tile (Cast / Changing / Becomes) */
+    .fig-label {
+      font-family: var(--mono); font-size: .56rem; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--muted); transition: color var(--ease);
+    }
+    .fig-col:has(.hex-tile.active) .fig-label { color: var(--gold); }
+    /* Changing-lines tile: ghost the still lines so the moving (gold) lines stand out */
+    .hex-changing { --yang: rgba(26,25,22,.16); }
+    .oracle-text-placeholder {
+      max-width: 65ch; margin: 2rem auto 0; padding: 1.6rem 1.9rem;
+      background: none; border: none;
+      text-align: center;
+    }
+    .oracle-text-placeholder:empty { display: none; }
+    .oracle-text-placeholder p { font-family: var(--serif); font-size: 1.04rem; line-height: 1.8; color: var(--text); margin-bottom: 1rem; }
+    .cast-kw { font-family: var(--mono); font-size: .62rem; letter-spacing: .14em; text-transform: uppercase; color: var(--gold); margin-bottom: .3rem; }
+    .cast-name { font-family: var(--serif); font-size: 1.5rem; line-height: 1.12; margin-bottom: .3rem; }
+    .cast-trig { font-size: .6rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 1rem; }
+    .cast-image { font-family: var(--serif); font-style: italic; font-size: 1.05rem; line-height: 1.5; color: var(--gold); margin-bottom: 1rem; }
+    .cast-image .il-1, .cast-image .il-2, .hx-image .il-1, .hx-image .il-2 { display: block; }
+    .section-label { display: block; text-align: center; font-size: .68rem; letter-spacing: .18em; text-transform: uppercase; font-weight: 600; color: var(--gold); margin-bottom: 0.6rem; }
+    .changing-note { font-family: var(--sans); font-size: 0.68rem; color: var(--gold); margin-top: 0.35rem; letter-spacing: .06em; text-transform: uppercase; }
+
+    .gua-row {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    /* Tighten the gap from the top trigram row to Inquiry (matched on the
+       homepage suits → Finder). */
+    #trigrams + .page-section { margin-block-start: var(--space-4); }
+    /* Same glyph-zone height as the homepage suit row, so Inquiry sits the
+       same distance below the trigrams as the Finder does below the suits. */
+    #trigram-row { min-height: 3rem; }
+
+    /* a11y: darker muted text for AA contrast on light backgrounds. The only
+       dark band that uses --muted text is the hexagram grid below, which
+       restores the lighter grey so its labels stay legible on navy. */
+    body { --muted: var(--ink-muted); }
+    /* a11y: gold used as READING TEXT on light → darker gold for AA. Decorative
+       gold accents, hover states and gold on the dark bands keep brand --gold. */
+    .hist-hex, .cast-kw, .cast-image, .changing-note { color: var(--gold-ink); }
+
+    /* ── 64 hexagram reference ── */
+    /* Self-contained box (not a full-bleed band): the section is transparent and
+       insets the panel from the viewport edges; the navy --band sits on the inner
+       .hex-ref-panel as a rounded panel. */
+    .hex-ref-wrap {
+      --muted: #9a90b8;
+      padding: 0 1.25rem;   /* gap from --section-gap; transparent panel needs no vertical pad */
+      --yang: rgba(255,255,255,.9);
+    }
+    .hex-ref-panel {
+      max-width: 880px; margin: 0 auto;
+      background: transparent;
+      border: none;
+      border-radius: var(--r-lg);
+      padding: 0 1.25rem;
+    }
+    .hex-ref-panel .hex-ref-header { max-width: none; padding: 0 .25rem; margin-top: 0; }
+    @media (max-width: 700px) {
+      .hex-ref-wrap { padding: 0 .85rem; }
+      .hex-ref-panel { padding: 0 .85rem; }
+    }
+    .hex-ref-header {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 0.6rem;
+      width: 100%; max-width: var(--max-w);
+      margin: 0.1rem auto 0.7rem; padding: 0 2rem;
+    }
+    .hex-ref-controls {
+      display: grid;
+      grid-template-columns: 30px auto 30px;
+      align-items: center;
+      justify-items: center;
+      gap: 0.6rem;
+    }
+    /* invisible left spacer mirrors the # button so the pill is visually centred */
+    .hex-ref-controls::before {
+      content: '';
+      display: block;
+      width: 30px;
+      height: 30px;
+    }
+    /* Small icon toggle — reveals 0–63 value and binary on every cell. */
+    .hex-ref-codes {
+      width: 30px; height: 30px; border-radius: 50%;
+      border: 1px solid rgba(255,255,255,.22); background: transparent;
+      color: rgba(255,255,255,.6); font-family: var(--mono); font-size: .9rem; line-height: 1;
+      display: flex; align-items: center; justify-content: center; cursor: pointer;
+      transition: background var(--ease), color var(--ease), border-color var(--ease);
+    }
+    .hex-ref-codes:hover { color: rgba(255,255,255,.9); border-color: rgba(255,255,255,.4); }
+    .hex-ref-codes.active { background: var(--gold); color: var(--accent); border-color: var(--gold); }
+    .hex-ref-grid .hex-ref-num, .hex-ref-grid .hex-ref-bits { display: none; }
+    .hex-ref-grid.show-codes .hex-ref-num, .hex-ref-grid.show-codes .hex-ref-bits { display: block; }
+    .hex-ref-label {
+      grid-column: 1 / -1; text-align: center;
+      font-family: var(--sans); font-size: 0.62rem; font-weight: 600;
+      letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold);
+    }
+    .hex-ref-toggle {
+      display: flex;
+      gap: 0;
+      width: fit-content;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .hex-ref-toggle button {
+      font-family: var(--sans);
+      font-size: 0.66rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.6);
+      background: transparent;
+      border: none;
+      flex: 0 0 6.5rem;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 1.1rem;
+      cursor: pointer;
+      transition: background .18s, color .18s;
+    }
+    .hex-ref-toggle button.active {
+      background: var(--gold);
+      color: var(--accent);
+    }
+    .hex-ref-grid {
+      display: none;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      gap: 0.3rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .hex-ref-grid.open { display: grid; }
+    /* Fast staggered entrance whenever the grid is (re)built — buildGrid() adds
+       .cell-in and a per-cell --i index. `backwards` fill (not forwards) so it
+       reverts to normal styles once done and can't lock transform/opacity; and
+       defined BEFORE .cast-glow (equal specificity) so a glowing cell's castPulse
+       wins the animation cascade over cellIn. */
+    @keyframes cellIn { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: none; } }
+    .hex-ref-cell.cell-in { animation: cellIn .18s ease backwards; animation-delay: calc(var(--i, 0) * 2.5ms); }
+    @media (prefers-reduced-motion: reduce) { .hex-ref-cell.cell-in { animation: none; } }
+    .hex-ref-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      aspect-ratio: 1;                    /* square tiles */
+      container-type: inline-size;        /* so the number can scale with tile size */
+      padding: 0.3rem 0.1rem;
+      border: 1px solid #e3d8c4;          /* shared card-face paper border */
+      border-radius: var(--r-sm);
+      /* warm parchment with a soft top highlight + lower shade for paper depth */
+      background:
+        linear-gradient(165deg, rgba(255,255,255,.55), rgba(255,255,255,0) 42%),
+        linear-gradient(165deg, rgba(120,90,40,0) 62%, rgba(120,90,40,.07)),
+        var(--card-paper);
+      box-shadow: 0 1px 2px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.45);
+      --yang: #1a1916;          /* black hexagram lines on the parchment tile */
+      cursor: default;
+      transition: transform var(--ease), border-color var(--ease), box-shadow var(--ease);
+    }
+    .hex-ref-cell:hover {
+      border-color: var(--gold);
+      transform: translateY(-2px);
+      box-shadow: 0 0 0 1px var(--gold), 0 7px 18px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.5);
+    }
+    .hex-ref-cell:active { transform: scale(.96); }
+    @media (prefers-reduced-motion: reduce) {
+      .hex-ref-cell { transition: border-color var(--ease), box-shadow var(--ease); }
+      .hex-ref-cell:hover, .hex-ref-cell:active { transform: none; }
+    }
+    .hex-ref-kw {
+      font-family: var(--serif);
+      /* scales with the tile: ~17px on a wide-grid desktop tile, floors for small phones */
+      font-size: clamp(0.7rem, 24cqi, 1.06rem);
+      font-weight: 600;
+      line-height: 1;
+      color: var(--card-dark);
+      margin-bottom: 5px;
+    }
+    .hex-ref-num {
+      font-family: var(--mono);
+      font-size: 0.5rem;
+      color: #696560;
+    }
+    .hex-ref-bits {
+      font-family: var(--mono);
+      font-size: 0.5rem;
+      color: #8a5f2a;
+    }
+
+    /* ── Cast result tiles — white, matching the grid hexagrams ── */
+    .hex-tile {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0;
+      width: 48px; height: 64px; flex-shrink: 0;
+      background:
+        linear-gradient(165deg, rgba(255,255,255,.55), rgba(255,255,255,0) 42%),
+        linear-gradient(165deg, rgba(120,90,40,0) 62%, rgba(120,90,40,.07)),
+        var(--card-paper);
+      border: 1px solid #e3d8c4; border-radius: var(--r-md); padding: 0;
+      box-shadow: 0 1px 2px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.45);
+      --yang: #1a1916; cursor: pointer;
+      transition: transform var(--ease), box-shadow var(--ease), border-color var(--ease);
+    }
+    .hex-tile:hover {
+      border-color: var(--gold); transform: translateY(-2px);
+      box-shadow: 0 0 0 1px var(--gold), 0 7px 18px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.5);
+    }
+    .hex-tile:active { transform: scale(.96); }
+    .hex-tile.active {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 2px var(--gold), inset 0 1px 0 rgba(255,255,255,.5);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .hex-tile { transition: box-shadow var(--ease), border-color var(--ease); }
+      .hex-tile:hover, .hex-tile:active { transform: none; }
+    }
+    .hex-tile .kw { font-family: var(--serif); font-size: .82rem; color: var(--card-dark); line-height: 1; margin-bottom: .4rem; }
+    .hex-tile svg { margin-bottom: 0; display: block; }
+.hex-tile .chg { font-family: var(--mono); font-size: .55rem; color: #8a5f2a; margin-top: .3rem; letter-spacing: .05em; }
+
+    .asked {
+      font-family: var(--serif); font-style: italic; font-size: 1.1rem;
+      color: var(--secondary); margin: 0 0 1.25rem; line-height: 1.5;
+    }
+    .asked span { color: var(--muted); font-style: normal; font-family: var(--mono); font-size: .62rem; letter-spacing: .14em; text-transform: uppercase; display: block; margin-bottom: .3rem; }
+
+    .hex-ref-cell.cast-glow {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 2px var(--gold), 0 0 14px rgba(181,134,74,.45), inset 0 1px 0 rgba(255,255,255,.5);
+      animation: castPulse .8s cubic-bezier(.34,1.56,.64,1);
+    }
+    @keyframes castPulse {
+      0%   { box-shadow: 0 0 0 2px var(--gold), 0 0 0 0 rgba(181,134,74,.6), inset 0 1px 0 rgba(255,255,255,.5); }
+      100% { box-shadow: 0 0 0 2px var(--gold), 0 0 16px rgba(181,134,74,0), inset 0 1px 0 rgba(255,255,255,.5); }
+    }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    .oracle-text-placeholder.fade, .governing-line.fade, .cast-figs.fade { animation: fadeUp .55s ease; }
+    @media (prefers-reduced-motion: reduce) {
+      /* Guards iching.css otherwise applies everywhere but had missed: the
+         64-grid cast glow pulse, and the fadeUp translateY-slide on the oracle
+         text / ruling line / result stage. Resting styling stays; motion drops. */
+      .hex-ref-cell.cast-glow { animation: none; }
+      .oracle-text-placeholder.fade, .governing-line.fade, .cast-figs.fade { animation: none; }
+    }
+
+    /* ── Governing (ruling) line ── */
+    .governing-line {
+      max-width: 65ch; margin: 1rem auto 0; padding: 1.25rem 1.6rem;
+      background: none; border: none;
+      text-align: center;
+    }
+    .governing-line:empty { display: none; }
+    /* Ruling Line is revealed on demand (the → between hexagrams toggles it) */
+    .governing-line.gl-collapsed { display: none; }
+    .gl-label { font-family: var(--mono); font-size: .58rem; letter-spacing: .18em; text-transform: uppercase; font-weight: 600; color: var(--gold); margin-bottom: .55rem; }
+    .gl-name { font-family: var(--serif); font-size: 1.4rem; line-height: 1.15; color: var(--text); margin-bottom: .35rem; }
+    .gl-src { font-family: var(--mono); font-size: .56rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: .9rem; }
+    .gl-desc { font-family: var(--serif); font-style: italic; font-size: 1.02rem; line-height: 1.7; color: var(--secondary); }
+    .gl-desc.placeholder { color: var(--muted); font-size: .82rem; letter-spacing: .04em; }
+    .gl-rule { font-family: var(--sans); font-size: .68rem; line-height: 1.5; color: var(--muted); margin-top: .85rem; padding-top: .8rem; border-top: 1px solid var(--rule); }
+    .gl-note { font-family: var(--serif); font-style: italic; font-size: 1.04rem; line-height: 1.65; color: var(--secondary); }
+    /* ── All moving lines (expandable) ── */
+    .gl-more { margin-top: .9rem; padding-top: .85rem; border-top: 1px solid var(--rule); }
+    .gl-toggle {
+      font-family: var(--mono); font-size: .58rem; letter-spacing: .14em; text-transform: uppercase;
+      color: var(--gold); background: transparent; border: 1px solid var(--rule-strong);
+      border-radius: 999px; padding: .38rem .95rem; cursor: pointer; transition: background var(--ease);
+    }
+    .gl-toggle:hover { background: var(--surface-alt); }
+    /* "Show all lines" unfurls with the shared grid-rows 0fr→1fr pattern
+       (same shape as .section-bodywrap/.section-bodymin) instead of a
+       display flip. .gl-more.open is toggled by wireGlToggle in iching.js. */
+    .gl-lineswrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .4s ease; }
+    .gl-more.open .gl-lineswrap { grid-template-rows: 1fr; }
+    .gl-linesmin { overflow: hidden; min-height: 0; }
+    @media (prefers-reduced-motion: reduce) { .gl-lineswrap { transition: none; } }
+    .gl-lines { margin-top: 1rem; display: flex; flex-direction: column; gap: .95rem; text-align: left; }
+    .ml-item { padding-left: .9rem; border-left: 2px solid var(--rule); }
+    .ml-item.still .ml-label { color: var(--muted); }
+    .ml-item.changing { border-left-color: rgba(181,134,74,.45); }
+    .ml-item.changing .ml-label { color: var(--secondary); }
+    .ml-item.ruling { border-left-color: var(--gold); }
+    .ml-label {
+      font-family: var(--mono); font-size: .56rem; letter-spacing: .12em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: .32rem; display: flex; align-items: center; gap: .5rem;
+    }
+    .ml-item.ruling .ml-label { color: var(--gold); }
+    .ml-tag {
+      font-family: var(--mono); font-size: .5rem; letter-spacing: .1em; text-transform: uppercase;
+      color: #fff; background: var(--gold); border-radius: 999px; padding: .08rem .45rem;
+    }
+    .ml-text { font-family: var(--serif); font-style: italic; font-size: 1rem; line-height: 1.62; color: var(--secondary); }
+
+    /* ── Hexagram popup (page overrides; shared chrome in css/site.css) ── */
+    .hx-overlay {
+      display: none; position: fixed; inset: 0; z-index: 300;
+      background: rgba(22,16,41,.52);
+      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+      align-items: center; justify-content: center; padding: 1rem;
+    }
+    .hx-header {
+      display: flex; gap: 1.25rem; align-items: flex-start;
+      padding: 12px 28px 5px; border-bottom: none;
+    }
+    .hx-body { flex: 1; overflow-y: auto; min-height: 0; padding: 1px 28px 2px; }
+    .hx-shadow { font-size: .92rem; line-height: 1.7; color: var(--secondary); font-style: italic; margin: 0; text-align: center; }
+    .hx-keynote { font-family: var(--serif); font-style: italic; font-size: 20px; line-height: 1.55; color: var(--gold-ink); text-align: center; padding: 5px 0; border-top: none; margin: 1px 0 0; }
+    .hex-ref-cell { cursor: pointer; }
+    .hex-result svg { cursor: pointer; }
+    /* Popup figure matches the tiles: parchment card, black lines (iching only). */
+    .hx-fig-svg { background: var(--card-paper); border: 1px solid var(--border); --yang: #1a1916; }
+
+    /* ── Page nav (scoped so it doesn't affect site header) ── */
+    .page-content nav {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      font-size: 0.8rem;
+      margin-bottom: 3rem;
+    }
+    .page-content nav a {
+      color: var(--muted);
+      text-decoration: none;
+      font-family: var(--mono);
+      letter-spacing: 0.02em;
+    }
+    .page-content nav a:hover { color: var(--accent); }
+
+    @media (max-width: 560px) {
+      h1 { font-size: 1.6rem; }
+    }
+
+    /* ── Cast card popup ── */
+    @keyframes cardFlip {
+      from { opacity: 0; transform: perspective(600px) rotateY(-75deg) scale(.97); }
+      to   { opacity: 1; transform: perspective(600px) rotateY(0deg)   scale(1);  }
+    }
+    @keyframes cardFlipOut {
+      from { opacity: 1; transform: perspective(600px) rotateY(0deg)   scale(1);  }
+      to   { opacity: 0; transform: perspective(600px) rotateY(75deg)  scale(.97); }
+    }
+    .ccard-popup.closing { animation: cardFlipOut .2s cubic-bezier(.55,0,.68,.07) forwards; }
+    .ccard-overlay {
+      display: none; position: fixed; inset: 0; z-index: 400;
+      background: rgba(22,16,41,.52);
+      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+      align-items: center; justify-content: center; padding: 1rem;
+    }
+    /* popup shell · suit bars · close button → shared in css/site.css */
+    .ccard-nav {
+      position: absolute; top: 50%; transform: translateY(-50%); z-index: 2;
+      width: 2rem; height: 3.5rem;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--muted); font-size: 1rem;
+      /* Rest at .45 (matching the shared .hx-nav) so the arrows are visible on
+         touch, where there's no hover to reveal them. Hover/focus lifts to 1. */
+      opacity: .45; transition: opacity var(--ease), color var(--ease);
+      cursor: pointer; border-radius: var(--r-sm);
+    }
+    .ccard-nav-prev { left: .35rem; }
+    .ccard-nav-next { right: .35rem; }
+    .ccard-popup:hover .ccard-nav { opacity: 1; }
+    .ccard-nav:hover { color: var(--text); }
+    .ccard-nav:focus-visible { opacity: 1; color: var(--text); outline: 2px solid var(--gold); outline-offset: 2px; }
+    #ccFace {
+      width: 78px; height: 109px; flex-shrink: 0; cursor: default;
+      opacity: 1; transform: none;
+    }
+    #ccFace:hover { transform: none; box-shadow: none; }
+    .ccard-dates { font-size: .6rem; letter-spacing: .06em; color: var(--muted); margin-top: .3rem; }
+    .ccard-planets { font-size: .62rem; letter-spacing: .08em; color: var(--muted); margin-top: .25rem; }
+    .ccard-displace { font-size: .62rem; letter-spacing: .06em; color: var(--muted); margin-top: .15rem; }
+    .cc-dcard { font: inherit; font-weight: 600; letter-spacing: .08em; }
+    .cc-dcard.hearts, .cc-dcard.diamonds { color: var(--red); }
+    .cc-dcard.clubs  { color: var(--green); }
+    .cc-dcard.spades { color: var(--navy); }
+    .ccard-footer {
+      padding: 1rem 1.75rem;
+      background: var(--accent);
+      border-radius: 0 0 var(--r-lg) var(--r-lg);
+      display: flex; justify-content: center; align-items: center;
+    }
+    .ic-line-display { display: flex; align-items: center; gap: 8px; }
+    .ic-line-seg {
+      height: 7px; border-radius: 2px;
+      background: rgba(255,255,255,.8);
+      transition: background var(--ease);
+    }
+    .ic-line-seg.changing { background: var(--gold); }
+    .ic-yang-seg { width: 72px; }
+    .ic-yin-seg  { width: 32px; }
+    /* Clickable cast-line cards (they open the compare-card popup) get the same
+       gold border + lift + glow affordance as .hex-tile / .hex-ref-cell. Scoped
+       to .clickable so the pre-cast dashed slots stay inert. */
+    .spread-card.clickable {
+      cursor: pointer;
+      transition: transform var(--ease), box-shadow var(--ease), border-color var(--ease);
+    }
+    .spread-card.clickable:hover, .spread-card.clickable:focus-visible {
+      border-color: var(--gold); transform: translateY(-2px);
+      box-shadow: 0 0 0 1px var(--gold), 0 7px 18px rgba(0,0,0,.34);
+    }
+    .spread-card.clickable:active { transform: scale(.96); }
+    @media (prefers-reduced-motion: reduce) {
+      .spread-card.clickable { transition: box-shadow var(--ease), border-color var(--ease); }
+      .spread-card.clickable:hover,
+      .spread-card.clickable:focus-visible,
+      .spread-card.clickable:active { transform: none; }
+    }
+
+    /* ── Trigrams (the eight building blocks) ── */
+    .tg-cell { cursor: pointer; border-radius: 10px; padding: 6px 8px; outline-offset: 3px;
+               transition: opacity var(--ease), transform var(--ease); }
+    .tg-cell:hover, .tg-cell:focus-visible { opacity: 1 !important; transform: translateY(-2px); }
+    .tg-cell:active { transform: scale(.96); }
+    .tg-cell.active { opacity: 1 !important; }
+    @media (prefers-reduced-motion: reduce) {
+      /* Its siblings .hex-tile / .hex-ref-cell disable this lift; the trigram
+         cells hadn't. Drop the hover lift and the press-scale under reduced motion. */
+      .tg-cell:hover, .tg-cell:focus-visible, .tg-cell:active { transform: none; }
+    }
+    /* Keep all eight trigrams on ONE line at every width: never wrap, let the
+       cells shrink, and scale the SVG (it has a viewBox). Gap shrinks on narrow
+       screens. */
+    #trigram-row { flex-wrap: nowrap; gap: clamp(4px, 2.4vw, 18px); }
+    #trigram-row .tg-cell { flex: 0 1 auto; min-width: 0; }
+    #trigram-row .tg-cell svg { max-width: 100%; height: auto; }
+    /* Pop-out: the row + detail lift into an elevated card that grows out of the
+       trigram line when a trigram is active; toggle the active trigram off to
+       collapse it back to the bare row. The "Trigrams" title stays put above. */
+    /* Box-less popout — content unfurls onto the page ground when a
+       trigram is active. No purple fill, no border, no shadow; the
+       grid 0fr → 1fr + opacity-slide on .tg-detail is the only visual
+       signal that the panel is opening. */
+    .tg-pop { border: none; border-radius: 0; padding: 0;
+              max-width: 720px; margin-inline: auto; }
+    /* the detail "spawns" from the row: grid-rows 0fr→1fr grows its height downward */
+    .tg-detailwrap { display: grid; grid-template-rows: 0fr; margin-top: 0;
+                     transition: grid-template-rows .4s var(--ease), margin-top .4s var(--ease); }
+    .tg-pop.open .tg-detailwrap { grid-template-rows: 1fr; margin-top: 1.1rem; }
+    .tg-detailmin { overflow: hidden; }
+    .tg-detail { display: flex; max-width: 720px; margin: 0 auto; align-items: center; gap: .4rem;
+                 opacity: 0; transform: translateY(-8px);
+                 transition: opacity .35s var(--ease), transform .35s var(--ease); }
+    .tg-pop.open .tg-detail { opacity: 1; transform: none; }
+    @media (prefers-reduced-motion: reduce) {
+      .tg-pop, .tg-detailwrap, .tg-detail { transition: none; }
+    }
+    /* Nav arrows lose their hairline outline too — color + the chevron
+       glyph carry the affordance, gold on hover/focus. */
+    .tg-nav { flex: 0 0 auto; background: none; border: none; color: var(--gold-ink);
+              width: 38px; height: 38px; border-radius: 999px; font-size: 1.5rem; line-height: 1; cursor: pointer;
+              display: flex; align-items: center; justify-content: center;
+              transition: color var(--ease), transform var(--ease); }
+    .tg-nav:hover, .tg-nav:focus-visible { color: var(--gold); transform: scale(1.1); }
+    /* Detail card — no surface fill, no border, just padding for content
+       breathing room. Sits on the page ground like the cardsoflife popout. */
+    .tg-card { flex: 1 1 auto; min-width: 0; background: none; border: none;
+               border-radius: 0; padding: 1.4rem 0; min-height: 16rem; }
+    .tg-head { display: flex; align-items: center; gap: 1.1rem; margin-bottom: .85rem; }
+    .tg-fig { flex: 0 0 auto; --yang: var(--gold); }   .tg-fig svg { display: block; }
+    main { --serif: 'Lora', serif; }
+    .tg-name { font-family: 'Lora', serif; font-size: 1.6rem; line-height: 1.1; }
+    .tg-sub { font-family: var(--sans); font-size: .66rem; letter-spacing: .08em; text-transform: uppercase;
+              color: var(--gold-ink); margin-top: .3rem; }
+    .tg-line { font-family: 'Lora', serif; font-style: italic; font-size: 1.05rem; line-height: 1.6;
+               color: var(--gold-ink); margin: 0 0 1rem; }
+    .tg-attrs { display: grid; grid-template-columns: auto 1fr; gap: .28rem .9rem; margin: 0 0 1rem;
+                font-family: var(--sans); font-size: .82rem; }
+    .tg-attrs dt { color: var(--gold-ink); text-transform: uppercase; letter-spacing: .1em; font-size: .6rem;
+                   font-weight: 600; align-self: center; }
+    .tg-attrs dd { margin: 0; color: var(--secondary); }
+    .tg-para { font-family: 'Lora', serif; font-size: 1.05rem; line-height: 1.75; color: var(--text); margin: 0; }
+    @media (max-width: 560px) {
+      .tg-nav { width: 32px; height: 32px; font-size: 1.3rem; }
+      .tg-card { padding: 1.1rem 1.15rem; }
+      .tg-head { gap: .8rem; }   .tg-name { font-size: 1.4rem; }
+      #trigram-row .tg-cell { padding: 4px 2px; }
+    }

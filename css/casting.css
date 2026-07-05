@@ -1,0 +1,227 @@
+/* ════════════════════════════════════════════════════════════════
+   Homepage — "The Casting"
+   A magnetic vortex of small cards (real faces + patterned gold backs)
+   held in counter-rotating shells around a calm centre, where the three
+   pages sit as a STATIC, legible menu of I Ching cash-coins. The field
+   responds to the pointer (repel + parallax + touch ripples — see
+   js/casting.js TUNE). The hero is the whole homepage. Page-specific
+   styles only; tokens/header/footer/starfield come from css/site.css +
+   js. Mobile-first; motion respects prefers-reduced-motion.
+   ════════════════════════════════════════════════════════════════ */
+
+body { overflow-x: hidden; }
+body.home { min-height: 100svh; --cash-hole: 30%; }   /* fit one screen; --cash-hole = the cash-coin square size, the single source shared by the nav coins + the card-backs */
+body.home .site-footer { position: relative; z-index: 6; }
+
+/* Atmosphere: a fixed vignette that focuses the calm centre + grounds the
+   foot. Top is clear so the transparent starry header still blends. */
+.atmos {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(120% 82% at 50% 44%, transparent 32%, rgba(9,5,20,.55) 100%),
+    linear-gradient(to bottom, rgba(9,5,20,0) 0%, rgba(9,5,20,0) 66%, rgba(7,4,16,.6) 100%);
+}
+
+/* ── Hero ───────────────────────────────────────────────────────── */
+.hero {
+  position: relative; z-index: 4;
+  flex: 1 1 auto; min-height: 0;   /* grow to fill the space between header + footer (one screen) */
+  display: flex; align-items: center; justify-content: center;
+  padding: clamp(1.5rem, 4vh, 3rem) 1rem;
+  overflow: hidden;
+}
+
+/* The 3D field layer fills the WHOLE viewport (fixed), so the galaxy bleeds
+   behind the transparent starry header + footer with no hard edge; the nav
+   sits above it, centred. Clipped to the viewport so cards never spill into a
+   scrollbar. Sits below the header (z 200) and footer (z 6), which float over. */
+.stage {
+  position: fixed; inset: 0; z-index: 1; overflow: hidden;
+  perspective: 1200px; perspective-origin: 50% 47%;
+  pointer-events: none;
+}
+/* The field leans gently toward the pointer (parallax, set by js/casting.js). */
+.field { position: absolute; inset: 0; transform-style: preserve-3d; will-change: transform; }
+
+/* ── A single small card in the field — a double-sided flipper ──── */
+.mini {
+  position: absolute; left: 50%; top: 47%;
+  width: clamp(36px, 4.8vw, 58px); aspect-ratio: 5 / 7;
+  margin-left: calc(clamp(36px, 4.8vw, 58px) / -2);
+  margin-top: calc((clamp(36px, 4.8vw, 58px) * 1.4) / -2);
+  will-change: transform;
+  transform-style: preserve-3d;
+}
+.mini .flip { position: absolute; inset: 0; transform-style: preserve-3d; will-change: transform; }
+.mini .side {
+  position: absolute; inset: 0; border-radius: 4px; overflow: hidden;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  box-shadow: 0 7px 16px rgba(0,0,0,.5), 0 2px 5px rgba(0,0,0,.4);
+}
+/* court-art images inside a mini are styled by the canonical .court-art (site.css) */
+
+/* Card-back visual is the shared .card-back (css/site.css). The mini only needs
+   the flip pre-rotation, so a TRUE 3D flip (rotateY/rotate3d on .flip, see
+   js/casting.js paint()) reveals it via backface-visibility — no opacity swap.
+   The rosette is near-symmetric, so the slight residual twist a diagonal-axis
+   flick leaves on the back is invisible. */
+.mini .card-back { transform: rotateY(180deg); }
+
+/* Each mini front is a real .spread-card face (parchment, serif corners, suit
+   pips / court art), reusing the canonical card CSS from site.css — locked to
+   5/7 and sized in container-query units, so corners + pips line up at any size.
+   It fills the slot and borrows the mini's rounded corners. */
+.mini .side .spread-card { width: 100%; height: 100%; border: 0; border-radius: inherit; }
+
+/* ── The Coins — a centred row of three cash-coins floating over the
+   card-field. Cards of Life (the great coin) sits in the middle, flanked by
+   I Ching and Celestial Keys. Each coin lives in a fluid vw-clamp "slot" so
+   its caption wraps inside that slot and can never collide with a neighbour,
+   and the row scales smoothly from phones to wide desktops. Selecting a coin
+   CASTS it (a tossed 3-turn flip flashing the yin-yang reverse). */
+.coins {
+  position: relative; z-index: 5; pointer-events: none;   /* only the coins catch input */
+  display: flex; align-items: center; justify-content: center;
+  gap: clamp(2px, 1vw, 12px);
+  width: 100%; overflow: visible;
+}
+.coins .coinwrap { pointer-events: auto; }
+
+.coinwrap {
+  text-decoration: none; color: var(--text);
+  display: flex; flex-direction: column; align-items: center; gap: .6rem;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  perspective: 900px;   /* depth for this coin's cast-flip */
+}
+.coin {
+  position: relative; border-radius: 50%; transform-style: preserve-3d;
+  transition: transform .3s cubic-bezier(.16,1,.3,1); will-change: transform;
+}
+.coinwrap:hover .coin, .coinwrap:focus-visible .coin { transform: translateY(-4px); }
+
+/* .face is now a transparent container. The gold field + border + inset highlight
+   live on the ::before pseudo, and that pseudo carries a CSS mask that punches a
+   centred square hole in the gold — so the centre of every cash coin is
+   literally transparent (you see the orbiting card-field through it). The .face's
+   other children (.reed / .rim / .hole / .emb with the icon) sit on TOP of the
+   pseudo and are untouched, so the icon and the recessed-window frame still draw
+   exactly where they did before. */
+.coin .face {
+  position: absolute; inset: 0; border-radius: 50%; overflow: hidden;
+  -webkit-backface-visibility: hidden; backface-visibility: hidden;
+  display: flex; align-items: center; justify-content: center;
+  background: none;
+}
+.coin .face::before {
+  content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 30%, #efd79e 0%, #d3aa61 40%, #a9813f 70%, #75582a 100%);
+  box-shadow: inset 0 2px 5px rgba(255,246,222,.5), inset 0 -6px 12px rgba(58,38,14,.55), inset 0 0 0 1px rgba(255,246,222,.18);
+  border: 1px solid #5a4220;
+  /* Two-layer mask: keep the whole face, MINUS a centred square the size of
+     --cash-hole — the small square hole of a real Chinese cash-coin. The same
+     token sizes the .hole frame and the card-back coins, so all stay in step. */
+  -webkit-mask: linear-gradient(#000,#000), linear-gradient(#000,#000);
+  -webkit-mask-position: 0 0, 50% 50%;
+  -webkit-mask-size: 100% 100%, var(--cash-hole) var(--cash-hole);
+  -webkit-mask-repeat: no-repeat, no-repeat;
+  -webkit-mask-composite: source-out;
+          mask: linear-gradient(#000,#000), linear-gradient(#000,#000);
+          mask-position: 0 0, 50% 50%;
+          mask-size: 100% 100%, var(--cash-hole) var(--cash-hole);
+          mask-repeat: no-repeat, no-repeat;
+          mask-composite: exclude;
+}
+.coin .face.back { transform: rotateY(180deg); }
+.coin .reed {
+  position: absolute; inset: 2px; border-radius: 50%; pointer-events: none;
+  background: repeating-conic-gradient(from 0deg, rgba(64,44,16,.6) 0 1.1deg, rgba(255,246,222,.10) 1.1deg 2.2deg, transparent 2.2deg 4deg);
+  -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 7px), #000 calc(100% - 6px));
+          mask: radial-gradient(closest-side, transparent calc(100% - 7px), #000 calc(100% - 6px));
+  opacity: .8;
+}
+.coin .rim {
+  position: absolute; inset: 12%; border-radius: 50%; pointer-events: none;
+  border: 1px solid rgba(92,66,28,.7);
+  box-shadow: inset 0 1px 0 rgba(255,246,222,.35), 0 1px 0 rgba(255,246,222,.22);
+}
+.coin .hole {
+  position: relative; z-index: 2; width: var(--cash-hole); height: var(--cash-hole); border-radius: 2px;
+  /* The square in the gold face is now physically cut out by the ::before mask,
+     so .hole no longer needs to fake the dark centre with a #1a1433 fill — it
+     just frames the see-through cut-out. Background is transparent; the inset
+     shadow + 1px gold-brown border draw the recessed-window rim around the
+     hole. The icon (.emb) still lives inside and renders centred over the cut. */
+  background: transparent;
+  box-shadow: inset 0 1px 4px rgba(0,0,0,.5), 0 1px 0 rgba(255,246,222,.28);
+  border: 1px solid #5a4220;
+  display: flex; align-items: center; justify-content: center;
+}
+.coin .hole .emb { color: #ecd49a; display: flex; filter: drop-shadow(0 1px 1px rgba(0,0,0,.6)); }
+.coin .hole .emb svg, .coin .hole .taiji svg {
+  display: block; width: calc(var(--coin) * .22); height: calc(var(--coin) * .22);
+}
+
+/* Four marks engraved into the gold field around the hole — the four card
+   suits on Cards of Life, the four yin/yang digrams (the "four images") on
+   I Ching. Both share the same four seats (top / right / bottom / left). */
+.coin .face .s, .coin .face .yy, .coin .face .nt {
+  position: absolute; z-index: 3; line-height: 1; pointer-events: none;
+  color: #3f2d12; text-shadow: 0 .5px 0 rgba(255,246,222,.4);
+}
+.coin .face .s { font-family: var(--serif); }
+.coin .face .s.t, .coin .face .yy.t, .coin .face .nt.t { top: 23.5%; left: 50%;   transform: translate(-50%,-50%); }
+.coin .face .s.r, .coin .face .yy.r, .coin .face .nt.r { top: 50%;   left: 76.5%; transform: translate(-50%,-50%) rotate(90deg); }
+.coin .face .s.b, .coin .face .yy.b, .coin .face .nt.b { top: 76.5%; left: 50%;   transform: translate(-50%,-50%) rotate(180deg); }
+.coin .face .s.l, .coin .face .yy.l, .coin .face .nt.l { top: 50%;   left: 23.5%; transform: translate(-50%,-50%) rotate(-90deg); }
+/* Suit glyphs + digram strokes scale off --coin so they hold the same
+   proportion at every size; the smaller cash-hole leaves room to size up. */
+.coinwrap.great .face .s { font-size: calc(var(--coin) * .12); }   /* text fallback if the SVG is unavailable */
+/* The four suits are the site's own pip-svg designs. Size the SVG explicitly
+   (it fills its viewBox, unlike a text glyph that only fills part of its em) so
+   it reads a touch larger than the old serif characters without crowding the
+   rim; drop-shadow gives the same engraved highlight the digrams/notes carry. */
+.coinwrap.great .face .s .pip-svg {
+  width: calc(var(--coin) * .125); height: auto;
+  filter: drop-shadow(0 .5px 0 rgba(255,246,222,.4));
+}
+.coin .face .yy svg { display: block; width: calc(var(--coin) * .2); height: auto;
+  filter: drop-shadow(0 .5px 0 rgba(255,246,222,.4)); }
+.coin .face .yy svg line { stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; }
+/* Celestial Keys — four note values, facing the centre like the suits/digrams
+   (right/left turned 90°, bottom 180°). The whole note takes the bottom seat so
+   its 180° turn is invisible; a touch smaller so the turned notes clear the rim. */
+.coin .face .nt svg { display: block; width: calc(var(--coin) * .135); height: auto;
+  filter: drop-shadow(0 .5px 0 rgba(255,246,222,.4)); }
+
+.coinwrap .cap { text-align: center; }
+.coinwrap .cap .eyebrow {
+  font-family: var(--sans); font-size: .5rem; font-weight: 600; letter-spacing: .22em;
+  text-transform: uppercase; color: var(--gold-ink); display: block; margin-bottom: .12rem;
+}
+.coinwrap .cap .nm { font-family: var(--serif); font-weight: 500; line-height: 1.05; color: var(--secondary); display: block; }
+
+/* tiers — each tier sets --coin (the coin diameter, which also scales the
+   icons via the calc above) plus a wider "slot" width so the caption wraps
+   inside it. The great coin no longer glows — just a soft drop shadow. */
+.coinwrap.great  { --coin: clamp(74px, 17vw, 150px); width: clamp(88px, 22vw, 200px); }
+.coinwrap.second { --coin: clamp(52px, 12vw, 100px); width: clamp(64px, 17vw, 150px); }
+.coins .coin { width: var(--coin); height: var(--coin); }
+
+.coinwrap.great  .coin { box-shadow: 0 16px 36px rgba(0,0,0,.5); }
+.coinwrap.great  .cap .nm { font-size: clamp(1.05rem, 2.2vw, 1.5rem); color: #f3e6c9; }
+
+.coinwrap.second .coin { box-shadow: 0 12px 26px rgba(0,0,0,.5); }
+.coinwrap.second .cap .nm { font-size: clamp(.82rem, 1.7vw, 1.15rem); color: #ecdcba; }
+
+/* the cast — a tossed 3-turn flip, landing back on the obverse */
+.coinwrap.casting .coin { animation: coinCast .5s cubic-bezier(.4,.02,.28,1) forwards; }
+@keyframes coinCast {
+  0%   { transform: translateY(0)     rotateY(0deg); }
+  50%  { transform: translateY(-40px) rotateY(540deg) scale(1.07); }
+  100% { transform: translateY(0)     rotateY(1080deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .coinwrap.casting .coin { animation: none; }
+}

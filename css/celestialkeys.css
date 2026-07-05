@@ -1,0 +1,347 @@
+/* Page-local tokens: site.css supplies the rest. --g-ease/--g-max mirror the
+   other games (Ping/Ouroboros): site --ease is a duration+easing pair and
+   --max-w is 1140px, so the game keeps its own narrower column + easing.
+   --mono brings in JetBrains Mono (loaded above) for the game UI. */
+:root{
+  --g-max:760px;
+  --g-ease:cubic-bezier(.22,.61,.36,1);
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  /* The game's own brighter "neon" gold (a deliberate sub-theme, distinct from
+     site --gold). Kept local + tokenised so the in-game palette is self-documented.
+     --g-gold-rgb is an R,G,B triplet for use inside rgba(). */
+  --g-gold-rgb:217,185,106;
+  --g-gold-hi:#e8cf8c;
+}
+
+/* ---- full-viewport web-app shell (override site.css's scrolling body) ---- */
+html,body{height:100%}
+body{min-height:0;height:100dvh;overflow:hidden;display:flex;flex-direction:column;
+  background:#161029;-webkit-tap-highlight-color:transparent}
+
+/* ---- the dark band fills the viewport; transparent so the starfield shows ---- */
+.game-dark{flex:1;min-height:0;background:transparent;display:flex;flex-direction:column;
+  padding:.7rem 0 .9rem}
+.game-inner{flex:1;min-height:0;width:100%;max-width:var(--g-max);margin:0 auto;
+  padding:0 1.1rem;display:flex;flex-direction:column;gap:.5rem}
+
+/* The page title is now visually hidden (.vh) — the injected site header shows
+   "Celestial Keys", so the in-band title was redundant. Dropping it gives the
+   stage the reclaimed vertical space (taller play area on desktop). */
+
+
+/* ---- score / status strip ---- */
+.hud{flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:clamp(.9rem,4vw,2rem);
+  color:#f1ecfa;font-family:var(--mono)}
+.hud .cell{display:flex;flex-direction:column;align-items:center;line-height:1}
+.hud .num{font-family:var(--serif);font-weight:500;font-size:clamp(1.3rem,4.6vw,1.9rem);
+  color:#e8cf8c;font-variant-numeric:tabular-nums;transition:transform .16s var(--g-ease)}
+.hud .num.flash{transform:scale(1.28)}
+.hud .lbl{font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;
+  color:rgba(241,236,250,.5);margin-top:.28rem}
+/* Joker mode: four suit pips that light as combo banks each suit */
+.suits{display:flex;gap:.28rem;font-size:clamp(1.1rem,4vw,1.6rem);line-height:1}
+.suits i{font-style:normal;color:rgba(241,236,250,.22);
+  transition:color .2s var(--g-ease),transform .2s var(--g-ease),text-shadow .2s var(--g-ease)}
+.suits i.ready{color:#e8cf8c;text-shadow:0 0 10px rgba(232,207,140,.7);transform:translateY(-1px)}
+.suits i.s-red.ready{color:#e0795f;text-shadow:0 0 10px rgba(224,121,95,.7)}
+.suits i.spend-next{animation:suitPulse 1.1s ease-in-out infinite}
+@keyframes suitPulse{0%,100%{opacity:1}50%{opacity:.5}}
+@media (prefers-reduced-motion:reduce){.suits i.spend-next{animation:none}}
+
+/* Joker toggle — image-only Joker card. Parchment background so the transparent-
+   bodied joker art reads as a real card face. Border + box-shadow carry the
+   state (idle / pressed) without recolouring the parchment. */
+.joker-toggle{display:flex;align-items:center;justify-content:center;cursor:pointer;
+  padding:.28rem .42rem;border-radius:8px;background:var(--card-paper);
+  border:1px solid rgba(var(--g-gold-rgb),.4);
+  transition:border-color .18s var(--g-ease),box-shadow .18s var(--g-ease)}
+.joker-toggle:hover{border-color:rgba(var(--g-gold-rgb),.95);
+  box-shadow:0 0 12px rgba(var(--g-gold-rgb),.25)}
+.joker-toggle:focus-visible{outline:2px solid #d9b96a;outline-offset:2px}
+.joker-card{width:1.7rem;height:auto;display:block}
+.joker-toggle[aria-pressed="true"]{border-color:rgba(224,121,95,.95);
+  box-shadow:0 0 16px rgba(224,121,95,.45)}
+
+/* Ouroboros link — hidden by default (see #snakeRow inline style + JS
+   updateSnakeUnlock), revealed once any song is 3-starred. A plain <a> styled
+   as a pill button (unlike Joker, there's no card-face art to back) matching
+   the .bar-btn / .pick language elsewhere in the panel; navigates straight to
+   ouroboros.html, no click handler needed. */
+.opt-row--snake{gap:.6rem}
+.snake-toggle{display:inline-flex;align-items:center;gap:.4rem;cursor:pointer;
+  padding:.32rem .75rem;border-radius:999px;background:transparent;
+  border:1px solid rgba(var(--g-gold-rgb),.45);color:var(--gold-ink);
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;
+  text-decoration:none;
+  transition:background .18s var(--g-ease),border-color .18s var(--g-ease)}
+.snake-toggle:hover{background:rgba(var(--g-gold-rgb),.14);border-color:rgba(var(--g-gold-rgb),.85)}
+.snake-toggle:focus-visible{outline:2px solid #d9b96a;outline-offset:2px}
+.snake-toggle svg{width:1.1rem;height:1.1rem;display:block}
+
+/* Cardology palette is now the standing visual identity (was previously gated
+   behind Joker mode). Crimson stage chrome, warm gold HUD nums, crimson→gold
+   health fill — all apply by default; the Joker button only controls the
+   suit-power-up gameplay layer. */
+
+/* health bar — sits BELOW the stage, near the strike line where misses happen */
+.health-wrap{flex:0 0 auto;width:100%;max-width:var(--g-max);margin:.5rem auto 0}
+.health{height:5px;border-radius:999px;background:rgba(255,255,255,.09);overflow:hidden}
+.health .fill{height:100%;width:100%;border-radius:999px;
+  background:linear-gradient(90deg,#e0795f,#e8cf8c);
+  transition:width .22s var(--g-ease),background .3s var(--g-ease)}
+.health .fill.low{background:linear-gradient(90deg,#b53030,#d06a52)}
+
+/* song-progress strip — slim violet bar ABOVE the stage; fills as the song plays.
+   Distinct gradient from the health bar so the two never read the same. */
+.progress-wrap{flex:0 0 auto;width:100%;max-width:var(--g-max);margin:0 auto .35rem}
+.progress{height:3px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden}
+.progress .fill{height:100%;width:0%;border-radius:999px;
+  background:linear-gradient(90deg,rgba(110,86,180,.85),rgba(180,150,232,.85));
+  transition:width .25s linear}
+
+/* sheet-music overlay: treble staff drawn BEHIND the falling tiles, in the top
+   quarter of the playfield. Tiles fall through it on their way to the strike.
+   pointer-events:none so it never steals taps; opacity tuned so tiles always
+   read primary and the notation is a quiet backdrop. */
+.staff-overlay{position:absolute;inset:0;width:100%;height:100%;display:block;
+  pointer-events:none;background:transparent;border:0;z-index:0;
+  transition:opacity .3s var(--g-ease)}
+
+/* ---- stage ---- */
+.stage-wrap{position:relative;flex:1 1 auto;min-height:0;display:flex;
+  align-items:stretch;justify-content:center}
+.stage{position:relative;flex:1 1 auto;display:flex;border:1px solid rgba(224,121,95,.4);
+  border-radius:var(--r-md);overflow:hidden;box-shadow:0 0 60px rgba(60,12,18,.4) inset;
+  background:linear-gradient(180deg,rgba(20,14,40,.30),rgba(14,9,28,.55));
+  transition:box-shadow .25s var(--g-ease)}
+canvas{display:block;width:100%;height:100%;touch-action:none;cursor:pointer}
+/* board (the falling-tiles canvas) sits above the staff overlay */
+.stage > #board{position:relative;z-index:1}
+
+/* Critical health (≤15, mid-run only — set in js/celestialkeys.js updateHud):
+   pulse the stage's own resting inset glow harder/wider in urgent crimson,
+   an urgency cue that doesn't depend on watching the thin health bar. Reduced
+   motion gets the same heightened glow as a single static frame, no pulse —
+   the shared site convention (see js/stars.js). */
+.stage.crit{animation:ckeysCrit 1.1s ease-in-out infinite}
+@keyframes ckeysCrit{
+  0%,100%{box-shadow:0 0 60px rgba(60,12,18,.4) inset}
+  50%{box-shadow:0 0 90px rgba(213,60,60,.7) inset,0 0 34px rgba(213,60,60,.4) inset}
+}
+@media (prefers-reduced-motion:reduce){
+  .stage.crit{animation:none;box-shadow:0 0 90px rgba(213,60,60,.6) inset}
+}
+
+/* overlays (menus) — cover the whole play area, scroll if very short */
+.overlay{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:.7rem;text-align:center;
+  background:radial-gradient(ellipse at 50% 38%,rgba(36,28,70,.66),rgba(18,12,36,.95));
+  backdrop-filter:blur(2px);color:#f1ecfa;padding:1.4rem;overflow-y:auto;
+  border-radius:var(--r-md);transition:opacity .3s var(--g-ease)}
+.overlay.hidden{opacity:0;pointer-events:none}
+.overlay h2{font-family:var(--serif);font-weight:500;
+  font-size:clamp(1.2rem,4vw,1.7rem);color:var(--gold-ink);line-height:1.1}
+.overlay .glyph{font-size:1.7rem;color:#d9b96a}
+.overlay .note{font-family:var(--mono);font-size:.72rem;line-height:1.55;
+  color:rgba(241,236,250,.62);letter-spacing:.04em;max-width:34ch}
+.overlay .stat-line{font-family:var(--mono);font-size:.78rem;letter-spacing:.05em;
+  color:rgba(241,236,250,.8);line-height:1.9}
+.overlay .stat-line b{color:var(--gold-ink);font-weight:600}
+/* one-time note shown on the exact run that unlocks Ouroboros (see endRun's
+   unlockNoteHTML) — a small gold highlight so it doesn't read as just another
+   stat line. */
+.overlay .stat-line .unlock-note{display:inline-block;margin-top:.2rem;
+  color:var(--gold-ink);letter-spacing:.04em}
+.stars{font-size:1.9rem;letter-spacing:.25em;color:#d9b96a;line-height:1}
+.stars .off{color:rgba(241,236,250,.18)}
+/* song just played — sits above the stars on the end screen */
+.end-song{font-family:var(--serif);font-weight:500;text-align:center;line-height:1.15;
+  font-size:clamp(1.15rem,3.8vw,1.55rem);color:#f1ecfa}
+.end-song .by{display:block;font-family:var(--mono);font-weight:400;
+  font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;
+  color:rgba(241,236,250,.5);margin-top:.35rem}
+
+/* Menu overlay: when the song grid overflows the viewport, anchoring content
+   to the top (flex-start) lets the top of the list stay reachable rather than
+   opening mid-scroll. The shared .overlay rule centres pause/end screens with
+   justify-content:center; this override applies only to #menu so the others
+   keep their centred look. */
+#menu{justify-content:flex-start;padding-block:clamp(1rem,5vh,2.4rem)}
+
+/* song-list wraps the single song-grid (one flat, difficulty-sorted list per
+   page — see .song-diff for the rating badge; no more Easy/Medium/Hard
+   section headers). Kept as its own wrapper in case a second element (e.g. a
+   future filter/search row) joins the grid inside #menu later. */
+.song-list{display:flex;flex-direction:column;gap:.9rem;width:100%;max-width:760px;
+  margin:0 auto}
+/* Two columns by default — uniform tile size and a predictable rhythm on
+   narrow/mobile viewports. The game column is capped at --g-max (760px), so
+   there's a firm ceiling on how many columns are ever useful; once the
+   viewport is wide enough for that cap to actually be reached, a third column
+   fits comfortably (~220px/tile) and roughly halves the scroll length versus
+   staying locked at two forever. No viewport is wide enough to usefully fit a
+   fourth — the column stops growing past 760px regardless of screen size. */
+.song-grid{display:grid;gap:.45rem;width:100%;grid-template-columns:1fr 1fr}
+@media (min-width:820px){
+  .song-grid{grid-template-columns:1fr 1fr 1fr}
+}
+
+/* tile: serif title + small-caps mono composer, with a 1-5 difficulty pip
+   badge on the right and — once the song's been played under the currently
+   selected settings — a third "Best N ★★☆" row (see .song-best). Originals
+   add a leading sigil and a warm gold tint so they read distinct from the
+   classics at a glance. min-height reserves room for a 2-line title (e.g.
+   "Hall of the Mountain King" on a narrow viewport) PLUS the best-score row,
+   so every tile stays the same size whether either wraps/appears or not. */
+.song-row{display:flex;flex-direction:row;align-items:center;justify-content:space-between;
+  gap:.5rem;padding:.7rem .9rem;border-radius:var(--r-md);cursor:pointer;width:100%;
+  min-height:5.6rem;
+  background:rgba(255,255,255,.05);border:1px solid rgba(var(--g-gold-rgb),.28);
+  color:#f1ecfa;text-align:left;transition:background .18s var(--g-ease),
+    border-color .18s var(--g-ease),transform .18s var(--g-ease),
+    box-shadow .25s var(--g-ease)}
+.song-row:hover,.song-row:focus-visible{background:rgba(var(--g-gold-rgb),.14);
+  border-color:rgba(var(--g-gold-rgb),.85);transform:translateY(-1px);
+  box-shadow:0 6px 18px -10px rgba(0,0,0,.6)}
+.song-row .song-info{display:flex;flex-direction:column;align-items:flex-start;
+  gap:.25rem;min-width:0}
+.song-row .song-name{font-family:var(--serif);font-size:1rem;font-weight:500;
+  line-height:1.18;color:#f7f1e6;letter-spacing:.005em}
+.song-row .meta{font-family:var(--mono);font-size:.58rem;letter-spacing:.13em;
+  text-transform:uppercase;color:rgba(241,236,250,.55)}
+/* best-score row — only rendered once the song has a record under the
+   currently selected settings. Gold (vs. the dim .meta line) so a played
+   song's achievement reads as a small highlight against the unplayed rest
+   of the grid. Stars mirror the end-screen's ★/dim-★ language at a smaller
+   scale — filled = earned, dim = not (same 0-3 scale as endScreen's #endStars). */
+.song-row .song-best{font-family:var(--mono);font-size:.58rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--gold-ink);display:flex;align-items:center;gap:.35rem}
+.song-row .best-stars{font-size:.72rem;letter-spacing:.08em;color:#e8cf8c;line-height:1}
+.song-row .best-stars .dim{color:rgba(241,236,250,.2)}
+
+/* difficulty rating (1-5) — a small pip row, decorative (aria-hidden; the
+   button's aria-label carries the same info as plain text). Filled pips glow
+   gold; empty ones sit at low-contrast so the badge reads at a glance without
+   competing with the song name. */
+.song-diff{display:flex;gap:.16rem;flex:0 0 auto;align-self:center}
+.song-diff i{display:block;width:.34rem;height:.34rem;border-radius:50%;
+  background:rgba(241,236,250,.18)}
+.song-diff i.on{background:#e8cf8c;box-shadow:0 0 5px rgba(232,207,140,.6)}
+
+/* originals — visually distinct: warm gold tint + brighter border + ✦ sigil */
+.song-row.original{
+  background:linear-gradient(135deg,rgba(232,207,140,.10),rgba(255,255,255,.04));
+  border-color:rgba(232,207,140,.55)}
+.song-row.original:hover,.song-row.original:focus-visible{
+  background:linear-gradient(135deg,rgba(232,207,140,.22),rgba(255,255,255,.08));
+  border-color:rgba(232,207,140,.95)}
+.song-row.original .meta{color:rgba(232,207,140,.7)}
+.song-row .orig-mark{color:rgba(232,207,140,.95);margin-right:.32em;
+  font-size:.78em;display:inline-block;line-height:1;
+  transform:translateY(-1px)}
+
+/* Menu top bar — 3 columns (spacer | page-nav | buttons) so the page nav stays
+   dead-centre while Info + Settings sit on the right. */
+.menu-bar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
+  width:100%;max-width:760px;margin:0 auto .6rem;padding:.1rem .1rem}
+.bar-side{display:flex;align-items:center;gap:.5rem}
+.bar-right{justify-self:end}
+/* page navigation — ‹ Classics / Originals › */
+.page-nav{display:flex;align-items:center;gap:.6rem;justify-self:center}
+.page-label{font-family:var(--mono);font-size:.66rem;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--gold-ink);min-width:7em;text-align:center}
+.nav-arrow{width:1.7rem;height:1.7rem;border-radius:50%;cursor:pointer;
+  font-family:var(--serif);font-size:1.15rem;line-height:1;color:var(--gold-ink);
+  background:transparent;border:1px solid rgba(var(--g-gold-rgb),.45);
+  display:flex;align-items:center;justify-content:center;
+  transition:background .18s var(--g-ease),border-color .18s var(--g-ease),opacity .18s var(--g-ease)}
+.nav-arrow:hover{background:rgba(var(--g-gold-rgb),.16);border-color:rgba(var(--g-gold-rgb),.85)}
+.nav-arrow:focus-visible{outline:2px solid #d9b96a;outline-offset:2px}
+.nav-arrow:disabled{opacity:.28;cursor:default;background:transparent;border-color:rgba(var(--g-gold-rgb),.22)}
+/* shared top-bar round buttons (Info "i" + Settings cog) */
+.bar-btn{width:2rem;height:2rem;display:flex;align-items:center;justify-content:center;
+  flex:0 0 auto;cursor:pointer;color:var(--gold-ink);background:transparent;
+  border:1px solid rgba(var(--g-gold-rgb),.45);border-radius:50%;
+  transition:background .18s var(--g-ease),border-color .18s var(--g-ease),transform .25s var(--g-ease)}
+.bar-btn:hover{background:rgba(var(--g-gold-rgb),.16);border-color:rgba(var(--g-gold-rgb),.85)}
+.bar-btn:focus-visible{outline:2px solid #d9b96a;outline-offset:2px}
+.bar-btn[aria-expanded="true"]{background:rgba(var(--g-gold-rgb),.22);
+  border-color:rgba(var(--g-gold-rgb),.95)}
+.info-btn{font-family:var(--serif);font-style:italic;font-size:1.05rem;line-height:1}
+.settings-cog svg{width:1.1rem;height:1.1rem;display:block}
+.settings-cog[aria-expanded="true"]{transform:rotate(30deg)}
+
+/* Settings + Info panels — hidden by default, revealed by the top-bar buttons.
+   Sit just below the bar, above the song grid. Same overlay visual language as
+   the rest of the menu chrome. */
+.settings-panel{display:flex;flex-direction:column;gap:.7rem;
+  width:100%;max-width:480px;margin:0 auto .7rem;padding:1rem 1.2rem;
+  background:rgba(28,20,58,.7);border:1px solid rgba(var(--g-gold-rgb),.32);
+  border-radius:var(--r-md);backdrop-filter:blur(4px);
+  transition:opacity .25s var(--g-ease),transform .25s var(--g-ease)}
+.settings-panel.hidden{display:none}
+.settings-head{display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:.2rem}
+.settings-head h3{font-family:var(--serif);font-weight:500;font-size:1rem;
+  color:var(--gold-ink);margin:0}
+.settings-close{width:1.7rem;height:1.7rem;border-radius:50%;cursor:pointer;
+  font-family:var(--mono);font-size:.85rem;line-height:1;color:var(--gold-ink);
+  background:transparent;border:1px solid rgba(var(--g-gold-rgb),.4);
+  display:flex;align-items:center;justify-content:center;
+  transition:background .18s var(--g-ease),border-color .18s var(--g-ease)}
+.settings-close:hover{background:rgba(var(--g-gold-rgb),.16);border-color:rgba(var(--g-gold-rgb),.85)}
+.settings-close:focus-visible{outline:2px solid #d9b96a;outline-offset:2px}
+.settings-divider{height:1px;background:rgba(var(--g-gold-rgb),.22);
+  margin:.2rem 0;border-radius:1px}
+
+/* option rows: left-aligned label + segmented control. Inside the settings panel
+   each row stretches full width with the label fixed-width on the left. */
+.opt-row{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;justify-content:flex-start}
+.settings-panel .opt-row{justify-content:space-between}
+.seg-label{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;
+  text-transform:uppercase;color:rgba(241,236,250,.55);min-width:3.4em}
+
+/* difficulty + keys segmented controls */
+.seg{display:flex;gap:.4rem;flex-wrap:wrap;justify-content:flex-end}
+.seg .pick{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;
+  padding:.4rem .95rem;border-radius:999px;cursor:pointer;
+  background:transparent;border:1px solid rgba(var(--g-gold-rgb),.4);color:var(--gold-ink);
+  transition:background .18s var(--g-ease),border-color .18s var(--g-ease)}
+.seg .pick[aria-pressed="true"]{background:rgba(var(--g-gold-rgb),.22);border-color:rgba(var(--g-gold-rgb),.9)}
+.seg .pick:hover{background:rgba(var(--g-gold-rgb),.14)}
+.seg .pick.static{cursor:default}
+.seg .pick.static:hover{background:rgba(var(--g-gold-rgb),.22)}
+
+@media (max-width:480px){
+  .settings-panel{padding:.85rem .9rem;gap:.6rem}
+  .settings-panel .opt-row{flex-direction:column;align-items:flex-start;gap:.4rem}
+  .settings-panel .seg{justify-content:flex-start;width:100%}
+}
+
+/* buttons (shared with Ping's language) */
+.btn{font-family:var(--mono);font-size:.78rem;letter-spacing:.08em;padding:.55rem 1.3rem;
+  border-radius:999px;border:1px solid rgba(var(--g-gold-rgb),.45);background:transparent;
+  color:var(--gold-ink);cursor:pointer;transition:background .2s var(--g-ease),border-color .2s var(--g-ease)}
+.btn:hover{background:rgba(var(--g-gold-rgb),.12);border-color:rgba(var(--g-gold-rgb),.8)}
+.btn:focus-visible{outline:2px solid #d9b96a;outline-offset:2px}
+.btn.primary{background:rgba(var(--g-gold-rgb),.92);color:#161029;border-color:transparent;font-weight:600}
+.btn.primary:hover{background:#e8cf8c}
+.row{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center}
+
+/* share affordance on the end screen (mirrors Ouroboros' share button) */
+.btn.share{display:inline-flex;align-items:center;gap:.5rem;line-height:1}
+.btn.share svg{width:14px;height:14px;stroke:currentColor;fill:none}
+.btn.share.copied{background:rgba(var(--g-gold-rgb),.22);border-color:rgba(var(--g-gold-rgb),.9);
+  color:var(--gold-ink);cursor:default}
+.share-status{font-family:var(--mono);font-size:.66rem;letter-spacing:.04em;line-height:1.4;
+  color:rgba(241,236,250,.6);text-align:center;max-width:34ch}
+.share-status:empty{display:none}
+
+/* ---- in-box How-to-play panel (reuses .settings-panel chrome) ---- */
+.info-panel p{font-family:var(--mono);font-size:.72rem;line-height:1.6;
+  color:rgba(241,236,250,.74);margin:0}
+.info-panel b{color:var(--gold-ink);font-weight:600}
+.kbd{font-family:var(--mono);font-size:.66rem;background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.16);border-radius:5px;padding:.05rem .4rem;color:#f1ecfa}
+.visually-hidden{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;
+  overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}

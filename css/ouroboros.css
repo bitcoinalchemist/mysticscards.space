@@ -1,0 +1,87 @@
+/* css/ouroboros.css — Ouroboros (the cosmic-snake game)
+   Page-local tokens are prefixed --ouro- so they never shadow the shared
+   :root tokens in site.css (see CLAUDE.md: "Pages inherit the global
+   tokens — do NOT re-declare them in a page :root"). var(--band) below is
+   an intentional reuse of the shared full-bleed dark-band token, not a
+   local alias. Body paints its own opaque dark ground (matches the
+   Celestial Keys game-shell convention in css/celestialkeys.css) rather
+   than staying transparent over the starfield canvas. */
+:root {
+  --ouro-bg: #120c24; --ouro-panel: #161029; --ouro-ink: #cdc9ef;
+  --ouro-dim: #9a90b8; --ouro-star: #ffd97a;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  background: radial-gradient(ellipse at 50% 18%, var(--band) 0%, var(--ouro-bg) 70%);
+  color: var(--ouro-ink); font-family: Georgia, serif;
+  display: flex; flex-direction: column;
+  touch-action: none; overflow: hidden;
+}
+main {
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; padding: 14px; overflow: hidden;
+}
+.hud { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; width: min(92vw,78vh,540px); font-size: 0.92rem; color: var(--ouro-dim); }
+.hud-left { display: flex; gap: 16px; }
+.hud h1 { font-weight: normal; font-size: 1.2rem; letter-spacing: 0.45em; text-transform: uppercase; color: var(--ouro-dim); text-indent: 0.45em; text-align: center; }
+#sphere { text-align: right; }
+.hud b { color: var(--ouro-star); font-weight: normal; display: inline-block; transition: transform .15s; }
+.hud b.pop { transform: scale(1.5); }
+#sphere { color: #a99bff; }
+canvas {
+  background: var(--ouro-panel); border: 1px solid rgba(140,120,220,0.25); border-radius: 8px;
+  box-shadow: 0 0 50px rgba(90,60,180,0.3); width: min(92vw, 78vh, 540px); height: auto;
+}
+.hint { font-size: 0.76rem; color: var(--ouro-dim); letter-spacing: 0.05em; }
+/* Touch d-pad. Cells scale with viewport width (bigger, easier targets on
+   larger phones) but clamp so the pad never outgrows the vertical/horizontal
+   budget on small screens. */
+.pad {
+  display: none;
+  --padcell: clamp(64px, 19vw, 88px);
+  grid-template-columns: repeat(3, var(--padcell));
+  grid-template-rows: repeat(2, var(--padcell));
+  gap: clamp(9px, 2.6vw, 14px);
+}
+.pad button {
+  display: flex; align-items: center; justify-content: center; line-height: 1;
+  background: var(--ouro-panel); border: 1px solid rgba(140,120,220,0.3);
+  border-radius: clamp(12px, 3vw, 16px);
+  color: var(--ouro-ink); font-size: clamp(1.5rem, 6.2vw, 2.1rem); cursor: pointer;
+  -webkit-tap-highlight-color: transparent; user-select: none; touch-action: manipulation;
+}
+.pad button:active { background: var(--band); }
+@media (pointer: coarse) { .pad { display: grid; } .hint { display: none; } }
+@media (prefers-reduced-motion: reduce) { .hud b { transition: none; } }
+/* The board wraps the canvas so the share button can float over it.
+   Overlaying (rather than adding to the centred column) keeps the game
+   from shifting up/down as the button appears and disappears. */
+.board { position: relative; }
+.board canvas { display: block; }
+/* Share button — revealed only when a round ends (mode 'dead'), floating
+   over the lower board. */
+.share-btn {
+  position: absolute; left: 50%; bottom: 8%; transform: translateX(-50%);
+  visibility: hidden; opacity: 0; pointer-events: none;
+  display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; line-height: 1;
+  background: var(--ouro-panel); border: 1px solid rgba(140,120,220,0.5); border-radius: 10px;
+  color: var(--ouro-ink); font-family: Georgia, serif; font-size: 0.82rem;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  padding: 11px 22px; min-height: 44px; cursor: pointer;
+  box-shadow: 0 6px 22px rgba(0,0,0,0.45);
+  transition: opacity .25s ease, background .15s, border-color .15s, color .15s;
+}
+.share-btn.show { visibility: visible; opacity: 1; pointer-events: auto; }
+.share-btn:hover, .share-btn:focus-visible { border-color: var(--ouro-star); color: var(--ouro-star); background: var(--band); }
+.share-btn.copied { border-color: var(--ouro-star); color: var(--ouro-star); background: var(--band); cursor: default; }
+.share-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; }
+.share-status {
+  position: absolute; left: 50%; bottom: calc(8% + 52px); transform: translateX(-50%);
+  visibility: hidden; opacity: 0; white-space: nowrap;
+  background: rgba(18,12,36,0.82); padding: 4px 9px; border-radius: 6px;
+  font-size: 0.72rem; color: var(--ouro-ink); letter-spacing: 0.04em; line-height: 1;
+  transition: opacity .15s;
+}
+.share-status.show { visibility: visible; opacity: 1; }

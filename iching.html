@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>I Ching Oracle — mysticscards.space</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet" />
+  <link rel="icon" href="favicon.ico" sizes="any" />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#100c1e" />
+  <meta name="description" content="Cast an I Ching reading with playing cards and explore all 64 hexagrams with original oracle interpretations." />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="mysticscards.space" />
+  <meta property="og:title" content="I Ching Oracle" />
+  <meta property="og:description" content="Cast an I Ching reading with playing cards and explore all 64 hexagrams with original oracle interpretations." />
+  <meta property="og:url" content="https://mysticscards.space/iching.html" />
+  <meta property="og:image" content="https://mysticscards.space/assets/og-image.png" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="version" content="1.13" />
+  <link rel="canonical" href="https://mysticscards.space/iching.html" />
+  <link rel="stylesheet" href="css/site.css" />
+  <link rel="stylesheet" href="css/iching.css" />
+</head>
+<body class="starry">
+<canvas class="stars-bg" aria-hidden="true"></canvas>
+<script src="js/stars.js"></script>
+<script src="js/site.js"></script>
+
+<main>
+<h1 class="vh">I Ching Oracle</h1>
+
+<!-- ── Trigrams (the eight building blocks) — top reference row, no heading ── -->
+<div class="page-content page-section" id="trigrams" style="max-width: var(--max-w); padding: 1.6rem 2rem .15rem">
+  <div class="tg-pop" id="tgPop">
+    <div class="gua-row" id="trigram-row" style="--yang: var(--gold); margin: 0; justify-content: center; align-items: center;"></div>
+    <div class="tg-detailwrap"><div class="tg-detailmin">
+      <div class="tg-detail" id="tgDetail" aria-live="polite">
+        <button class="tg-nav" id="tgPrev" type="button" aria-label="Previous trigram">‹</button>
+        <div class="tg-card">
+          <div class="tg-head">
+            <div class="tg-fig" id="tgFig"></div>
+            <div>
+              <div class="tg-name" id="tgName"></div>
+              <div class="tg-sub" id="tgSub"></div>
+            </div>
+          </div>
+          <p class="tg-line" id="tgLine"></p>
+          <dl class="tg-attrs" id="tgAttrs"></dl>
+          <p class="tg-para" id="tgPara"></p>
+        </div>
+        <button class="tg-nav" id="tgNext" type="button" aria-label="Next trigram">›</button>
+      </div>
+    </div></div>
+  </div>
+</div>
+
+<div class="page-content page-section" style="max-width: var(--max-w); padding: 0 2rem 0">
+
+<!-- ── Oracle ── -->
+<section class="oracle page-section section-open" id="oracle" style="margin: 0">
+  <button class="section-toggle" type="button"
+          aria-expanded="true" aria-controls="oracleBody"
+          onclick="toggleSection('oracle')">
+    <span class="section-label">Inquiry</span>
+    <svg class="section-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+  </button>
+  <div class="section-bodywrap">
+    <div class="section-bodymin" id="oracleBody">
+  <div class="inquiry-top">
+    <div class="inquiry-wrap">
+      <div class="question-wrap">
+        <textarea class="question-input" id="questionInput" rows="2"
+          aria-label="Your question for the oracle" placeholder="Please advise"></textarea>
+        <div class="cast-actions">
+          <span class="cast-ctl"><button class="cast-btn cast-btn-icon" id="castOneBtn" title="Cast a line" aria-label="Cast a line"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" style="display:block;pointer-events:none"><rect x="7.5" y="3.5" width="9" height="17" rx="2"/><path class="cast-spark" d="M12 9.2 Q12.7 11.3 14.8 12 Q12.7 12.7 12 14.8 Q11.3 12.7 9.2 12 Q11.3 11.3 12 9.2 Z" fill="currentColor" stroke="none"/></svg></button></span>
+          <span class="cast-ctl"><button class="cast-btn cast-btn-icon" id="castAllBtn" title="Cast all six lines" aria-label="Cast all six lines"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" style="display:block;pointer-events:none"><g transform="translate(12 18)"><rect x="-3.6" y="-14" width="7.2" height="13.5" rx="1.4" transform="rotate(-24)"/><rect x="-3.6" y="-14" width="7.2" height="13.5" rx="1.4" transform="rotate(24)"/><rect x="-3.6" y="-15" width="7.2" height="14" rx="1.4" fill="var(--gold)"/></g></svg></button></span>
+          <button class="cast-btn cast-btn-alt cast-btn-icon" id="saveReadingBtn" style="visibility:hidden;" title="Save reading"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" style="display:block;pointer-events:none"><path fill="currentColor" fill-rule="evenodd" d="M1 1H10L14 5V15H1ZM3 2H8V6.5H3ZM3 10.5H13V14H3Z"/></svg></button>
+          <button class="cast-btn cast-btn-alt cast-btn-icon" id="shareBtn" style="visibility:hidden;" title="Copy link to this reading"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;pointer-events:none"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
+          <div class="hist-wrap">
+            <button class="cast-btn cast-btn-alt cast-btn-icon" id="historyBtn" title="Past readings" aria-label="Past readings"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;pointer-events:none"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l3 2"/></svg></button>
+            <div class="hist-panel" id="histPanel"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="asked" id="askedLine" style="display:none"></div>
+
+  <div class="cast-stage">
+    <div class="cards-row" id="cardsRow"></div>
+
+    <div class="pull-banner" id="pullBanner" style="display:none"></div>
+
+    <div class="cast-figs" id="resultWrap" style="display:none">
+      <div class="fig-col">
+        <div class="hex-result" id="hexPrimary" title="Show the Cast hexagram"></div>
+        <span class="fig-label">Cast</span>
+      </div>
+      <div class="fig-col" id="changingCol" style="display:none">
+        <div class="hex-result hex-tile hex-changing" id="hexChanging" title="Show the changing lines"></div>
+        <span class="fig-label">Changing</span>
+      </div>
+      <div class="fig-col" id="becomesCol" style="display:none">
+        <div class="hex-result" id="hexSecondary" title="Show the Becomes hexagram"></div>
+        <span class="fig-label">Becomes</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="oracle-text-placeholder" id="oracleText"></div>
+  <div class="governing-line" id="governingLine"></div>
+    </div><!-- /.section-bodymin -->
+  </div><!-- /.section-bodywrap -->
+</section>
+
+</div><!-- /.page-content -->
+
+<!-- ── Reference grid (full-bleed) ── -->
+<section class="hex-ref-wrap page-section section-open" id="hexagrams">
+  <button class="section-toggle" type="button"
+          aria-expanded="true" aria-controls="hexagramsBody"
+          onclick="toggleSection('hexagrams')">
+    <span class="hex-ref-label">Hexagrams</span>
+    <svg class="section-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+  </button>
+  <div class="section-bodywrap">
+    <div class="section-bodymin" id="hexagramsBody">
+  <div class="hex-ref-panel">
+    <div class="hex-ref-header">
+      <div class="hex-ref-controls">
+        <div class="hex-ref-toggle" id="seqToggle">
+          <button data-seq="fuxi" class="active">Fu Xi</button>
+          <button data-seq="kingwen">King Wen</button>
+        </div>
+        <button class="hex-ref-codes" id="codesToggle" aria-pressed="false" aria-label="Show 0–63 and binary values" title="Show 0–63 and binary">#</button>
+      </div>
+    </div>
+    <div class="hex-ref-grid open" id="hex-grid"></div>
+  </div>
+    </div><!-- /.section-bodymin -->
+  </div><!-- /.section-bodywrap -->
+</section>
+
+<!-- ── Seed Oracle (placeholder — built out from the footer Seed Oracle mark) ──
+     Hidden until it has content: shipping a visible section header that unfurls
+     to nothing reads as broken. Restore the markup below (unchanged) when the
+     Seed Oracle actually folds into this page; until then it stays reachable
+     via the footer hexagram mark → seedoracle.html.
+<div class="page-content page-section section-open" id="seedoracle" style="max-width: var(--max-w); padding: 0 2rem 1.9rem">
+  <button class="section-toggle" type="button"
+          aria-expanded="true" aria-controls="seedoracleBody"
+          onclick="toggleSection('seedoracle')">
+    <span class="section-label">Seed Oracle</span>
+    <svg class="section-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+  </button>
+  <div class="section-bodywrap">
+    <div class="section-bodymin" id="seedoracleBody">
+    </div>
+  </div>
+</div>
+-->
+
+
+<!-- ── Hexagram popup ── -->
+<div class="hx-overlay" id="hxOverlay">
+  <div class="hx-popup" id="hxPopup" role="dialog" aria-modal="true" aria-labelledby="hxName" tabindex="-1">
+    <button class="hx-close" id="hxClose" aria-label="Close">✕</button>
+    <button class="hx-nav hx-prev" id="hxPrev" aria-label="Previous hexagram">‹</button>
+    <button class="hx-nav hx-next" id="hxNext" aria-label="Next hexagram">›</button>
+    <div class="hx-header">
+      <div class="hx-fig">
+        <div class="hx-fig-svg" id="hxFig"></div>
+        <div class="hx-fig-num" id="hxFigNum"></div>
+      </div>
+      <div class="hx-id">
+        <div class="hx-kw" id="hxKw"></div>
+        <div class="hx-name" id="hxName"></div>
+        <div class="hx-trig" id="hxTrig"></div>
+      </div>
+    </div>
+    <div class="hx-image" id="hxImage"></div>
+    <div class="hx-body" id="hxContent" tabindex="0"></div>
+  </div>
+</div>
+
+<!-- Shared card data + popup logic -->
+<script src="js/cardsdata.js"></script>
+<script src="js/richmonddata.js"></script>
+<!-- 64 hexagram oracle answers (Sage voice) -->
+<script src="js/ichingdata.js"></script>
+<!-- 384 moving-line texts (Sage voice) -->
+<script src="js/linedata.js"></script>
+
+<!-- ═══════════════════════════════════════════════════════
+     JAVASCRIPT — render hexagrams
+════════════════════════════════════════════════════════ -->
+
+
+<!-- ── Cast card popup ── -->
+
+<div class="ccard-overlay" id="ccardOverlay">
+  <div class="ccard-popup" id="ccardPopup">
+    <button class="ccard-close" type="button" aria-label="Close" title="Close" onclick="event.stopPropagation(); closeCompareCard()">✕</button>
+    <button class="ccard-nav ccard-nav-prev" type="button" aria-label="Previous card" title="Previous card" onclick="event.stopPropagation(); navigateCast(-1)">&#8249;</button>
+    <button class="ccard-nav ccard-nav-next" type="button" aria-label="Next card" title="Next card" onclick="event.stopPropagation(); navigateCast(1)">&#8250;</button>
+    <div class="ccard-solar" id="ccSolarWrap">
+      <span class="ccard-solar-value" id="ccSolar">—</span>
+    </div>
+    <div class="ccard-header">
+      <div class="spread-card" id="ccFace"></div>
+      <div class="ccard-info">
+        <div class="ccard-name"     id="ccName"></div>
+        <div class="ccard-subtitle" id="ccSubtitle"></div>
+        <div class="ccard-stat-value ccard-planets" id="ccPlanets"></div>
+        <div class="ccard-stat-value ccard-displace" id="ccDisplace"></div>
+        <div class="ccard-dates"    id="ccDates"></div>
+      </div>
+    </div>
+    <div class="ccard-body">
+      <div class="ccard-personality" id="ccPersonality"></div>
+    </div>
+    <div class="ccard-footer">
+      <div class="ic-line-type" id="icLineType"></div>
+    </div>
+  </div>
+</div>
+
+
+</main>
+<footer class="site-footer"><div class="sf-inner"></div></footer>
+
+<script src="js/iching.js"></script>
+</body>
+</html>

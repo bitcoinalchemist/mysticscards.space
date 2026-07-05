@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- Zoom stays enabled (WCAG 1.4.4) — accidental pinch/double-tap zoom during
+     play is already prevented by touch-action:none on the board. -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ouroboros — mysticscards.space</title>
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#100c1e">
+<meta name="description" content="Guide a cosmic snake through the twelve zodiac spheres.">
+<meta name="page-title" content="Ouroboros">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="mysticscards.space">
+<meta property="og:title" content="Ouroboros">
+<meta property="og:description" content="Guide a cosmic snake through the twelve zodiac spheres.">
+<meta property="og:url" content="https://mysticscards.space/ouroboros.html">
+<meta property="og:image" content="https://mysticscards.space/assets/og-image.png">
+<meta name="twitter:card" content="summary">
+<link rel="canonical" href="https://mysticscards.space/ouroboros.html">
+<meta name="version" content="1.8">
+<link rel="stylesheet" href="css/site.css">
+<link rel="stylesheet" href="css/ouroboros.css">
+</head>
+<body class="starry">
+<script src="js/site.js"></script>
+<canvas class="stars-bg" aria-hidden="true"></canvas>
+<script src="js/stars.js"></script>
+<main id="main">
+<div class="hud">
+  <div class="hud-left">
+    <span>Stars <b id="score">0</b></span>
+    <span>Best <b id="best">0</b></span>
+  </div>
+  <h1>Ouroboros</h1>
+  <span id="sphere">&nbsp;</span>
+</div>
+<div class="board">
+  <canvas id="game" width="420" height="420"></canvas>
+  <button class="share-btn" id="shareBtn" type="button" aria-label="Share your best score">
+    <svg viewBox="0 0 24 24" aria-hidden="true" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 15V3"/><path d="m8 7 4-4 4 4"/></svg>
+    Share best score
+  </button>
+  <div class="share-status" id="shareStatus" role="status" aria-live="polite"></div>
+</div>
+<div class="hint">Arrows / WASD &middot; P pause &middot; M mute &middot; Space restart</div>
+<div class="pad">
+  <span></span><button data-dir="up" aria-label="Move up">&#9650;</button><span></span>
+  <button data-dir="left" aria-label="Move left">&#9664;</button><button data-dir="down" aria-label="Move down">&#9660;</button><button data-dir="right" aria-label="Move right">&#9654;</button>
+</div>
+</main>
+<footer class="site-footer"><div class="sf-inner"></div></footer>
+<script src="js/ouroboros.js"></script>
+</body>
+</html>

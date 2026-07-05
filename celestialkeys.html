@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<!-- Zoom stays enabled (WCAG 1.4.4) — accidental pinch/double-tap zoom during
+     play is already prevented by touch-action:none on the game canvas. -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Celestial Keys — mysticscards.space</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#100c1e">
+<meta name="description" content="A falling-tiles rhythm game — catch the notes as they descend and play the music of the spheres.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="mysticscards.space">
+<meta property="og:title" content="Celestial Keys">
+<meta property="og:description" content="A falling-tiles rhythm game — catch the notes as they descend and play the music of the spheres.">
+<meta property="og:url" content="https://mysticscards.space/celestialkeys.html">
+<meta property="og:image" content="https://mysticscards.space/assets/og-image.png">
+<meta name="twitter:card" content="summary">
+<link rel="canonical" href="https://mysticscards.space/celestialkeys.html">
+<meta name="version" content="2.4">
+<link rel="stylesheet" href="css/site.css">
+<link rel="stylesheet" href="css/celestialkeys.css" />
+</head>
+<body class="starry">
+<script src="js/site.js"></script>
+
+<!-- Ambient starfield (fixed, behind all content) — shared with the site -->
+<canvas class="stars-bg" aria-hidden="true"></canvas>
+<script src="js/stars.js"></script>
+
+<main class="game-dark">
+  <div class="game-inner">
+
+    <h1 class="vh">Celestial Keys</h1>
+
+    <div class="hud" aria-hidden="true">
+      <div class="cell"><span class="num" id="scoreVal">0</span><span class="lbl">Score</span></div>
+      <div class="cell"><span class="num" id="bestVal">0</span><span class="lbl">Best</span></div>
+      <div class="cell"><span class="num" id="comboVal">0</span><span class="lbl">Combo</span></div>
+      <div class="cell"><span class="num" id="accVal">100%</span><span class="lbl">Accuracy</span></div>
+      <div class="cell suit-cell" id="suitCell" style="display:none">
+        <span class="suits" id="suitPips"><i>·</i><i>·</i><i>·</i><i>·</i></span>
+        <span class="lbl">Suits — press key</span>
+      </div>
+    </div>
+
+    <!-- Song progress (top): slim violet strip that fills as gameTime / songLen
+         advances. Tells the player how far through the current melody they are. -->
+    <div class="progress-wrap" aria-hidden="true">
+      <div class="progress"><div class="fill" id="progressFill"></div></div>
+    </div>
+
+    <div class="stage-wrap">
+      <div class="stage">
+        <!-- Treble-staff overlay: lives BEHIND the falling tiles. Notes scroll
+             right-to-left with a fixed "now" line on the left; lines + clef + key
+             sig sit in the top quarter so tiles fall through them on the way to the
+             strike line. Semi-transparent — tiles always take visual precedence. -->
+        <canvas id="staff" class="staff-overlay" aria-hidden="true"></canvas>
+        <canvas id="board" aria-label="Falling-notes play field"></canvas>
+
+        <!-- Start / song-select menu. Top bar carries the page nav (Classics ⇄
+             Originals) centred, with Info + Settings buttons to the right. Both
+             open as in-box panels (no separate modal); the song grid (one flat
+             list per page, sorted by each song's 1-5 difficulty rating) fills
+             the rest. -->
+        <div class="overlay" id="menu">
+
+          <div class="menu-bar">
+            <span class="bar-side bar-left" aria-hidden="true"></span>
+            <div class="page-nav" id="pageNav" role="group" aria-label="Melody pages">
+              <button class="nav-arrow" id="pagePrev" type="button" aria-label="Previous page">‹</button>
+              <span class="page-label" id="pageLabel" aria-live="polite">Classics</span>
+              <button class="nav-arrow" id="pageNext" type="button" aria-label="Next page">›</button>
+            </div>
+            <div class="bar-side bar-right">
+              <button class="bar-btn info-btn" id="infoBtn" type="button"
+                      aria-label="How to play" aria-expanded="false" aria-controls="infoPanel"
+                      title="How to play">i</button>
+              <button class="bar-btn settings-cog" id="settingsBtn" type="button"
+                      aria-label="Settings" aria-expanded="false" aria-controls="settingsPanel">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/>
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9 1.65 1.65 0 0 0 4.27 7.18l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+                        fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Settings panel: hidden by default; opens via the cog (top bar). -->
+          <div class="settings-panel hidden" id="settingsPanel" role="dialog"
+               aria-modal="false" aria-labelledby="settingsTitle">
+            <div class="settings-head">
+              <h3 id="settingsTitle">Settings</h3>
+              <button class="settings-close" id="settingsCloseBtn" type="button" aria-label="Close settings">✕</button>
+            </div>
+
+            <div class="opt-row opt-row--keys">
+              <span class="seg-label">Keys</span>
+              <div class="seg" id="keysSeg" role="group" aria-label="Number of keys">
+                <button class="pick" data-lanes="0">4</button>
+                <button class="pick" data-lanes="1">5</button>
+                <button class="pick" data-lanes="2">6</button>
+                <button class="pick" data-lanes="3" aria-pressed="true">7</button>
+              </div>
+            </div>
+            <div class="opt-row" id="layoutRow">
+              <span class="seg-label">Layout</span>
+              <div class="seg" id="layoutSeg" role="group" aria-label="Key layout"></div>
+            </div>
+            <div class="opt-row opt-row--speed">
+              <span class="seg-label">Speed</span>
+              <div class="seg" id="diffSeg" role="group" aria-label="Speed">
+                <button class="pick" data-diff="0">Gentle</button>
+                <button class="pick" data-diff="1" aria-pressed="true">Steady</button>
+                <button class="pick" data-diff="2">Swift</button>
+              </div>
+            </div>
+
+            <div class="settings-divider" aria-hidden="true"></div>
+
+            <div class="opt-row opt-row--joker">
+              <span class="seg-label">Joker</span>
+              <button class="joker-toggle" id="jokerBtn" type="button" aria-pressed="false"
+                      aria-label="Joker — turn on suit power-ups (combo banks ♥♦♣♠, Space spends one)"
+                      title="Joker — suit power-ups">
+                <img src="assets/cards/JOKER.webp" alt="" class="joker-card">
+              </button>
+            </div>
+
+            <!-- Secret: hidden until any song is 3-starred (see updateSnakeUnlock
+                 in js/celestialkeys.js). Links straight to the real game. -->
+            <div class="opt-row opt-row--snake" id="snakeRow" style="display:none">
+              <span class="seg-label">Secret</span>
+              <a class="snake-toggle" id="snakeBtn" href="ouroboros.html"
+                 aria-label="Ouroboros — unlocked by earning three stars on any song"
+                 title="Ouroboros — a snake game through the twelve zodiac spheres">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 4a8 8 0 1 0 6.93 4" fill="none" stroke="currentColor"
+                        stroke-width="1.8" stroke-linecap="round"/>
+                  <path d="M18.93 8 20.3 6.4 16.9 6.9Z" fill="currentColor"/>
+                </svg>
+                Ouroboros
+              </a>
+            </div>
+          </div>
+
+          <!-- How-to-play panel: hidden by default; opens via the info button.
+               Same in-box chrome as Settings. -->
+          <div class="settings-panel info-panel hidden" id="infoPanel" role="dialog"
+               aria-modal="false" aria-labelledby="infoTitle">
+            <div class="settings-head">
+              <h3 id="infoTitle">How to play</h3>
+              <button class="settings-close" id="infoCloseBtn" type="button" aria-label="Close">✕</button>
+            </div>
+            <p>Notes of a melody fall down a row of <b>lanes</b>. Strike each note the
+              moment its tile crosses the gold line at the bottom.</p>
+            <p><b>On a keyboard</b> the lanes map left-to-right to home-row keys. Pick
+              <b>4–7 keys</b> in Settings (fewer is easier); <b>Layout</b> shows which
+              keys, and <b>Speed</b> is separate. <b>On a touchscreen</b>, tap the lane.</p>
+            <p>A <b>Perfect</b> (dead on the line) beats a <b>Good</b>. Consecutive hits
+              build a <b>combo</b> that multiplies your score. Miss, or hit an empty lane,
+              and the combo breaks — miss too many and the light fades.</p>
+            <p><b>Held notes glow</b> at the line — keep tapping that key while the tail
+              falls to <b>whammy</b> it for bonus points <i>and a small health trickle</i>
+              (it never breaks your combo).</p>
+            <p>Each song shows a <b>1–5 difficulty rating</b> as a row of gold pips, sorted
+              easiest to hardest; the top arrows flip between <b>Classics</b> and
+              <b>Originals</b> (✦). <span class="kbd">Esc</span> pauses. In <b>Joker</b> mode
+              a banked suit (♥♦♣♠) lights on a lane key — press it in a gap to spend its power.</p>
+          </div>
+
+          <div class="song-list" id="songList" role="list" aria-label="Choose a melody"></div>
+        </div>
+
+        <!-- Pause -->
+        <div class="overlay hidden" id="pauseScreen">
+          <span class="glyph">❚❚</span>
+          <h2>Paused</h2>
+          <div class="row">
+            <button class="btn primary" id="resumeBtn">Resume</button>
+            <button class="btn" id="quitBtn">Quit</button>
+          </div>
+          <p class="note">Press <span class="kbd">Esc</span> or <span class="kbd">Space</span> to resume.</p>
+        </div>
+
+        <!-- End (win or fail) -->
+        <div class="overlay hidden" id="endScreen">
+          <div class="end-song" id="endSong"></div>
+          <div class="stars" id="endStars"></div>
+          <h2 id="endTitle">Complete</h2>
+          <p class="stat-line" id="endStats"></p>
+          <div class="row">
+            <button class="btn primary" id="againBtn">Play again</button>
+            <button class="btn" id="menuBtn">Choose melody</button>
+          </div>
+          <button class="btn share" id="shareBtn" type="button" aria-label="Share your score">
+            <svg viewBox="0 0 24 24" aria-hidden="true" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 15V3"/><path d="m8 7 4-4 4 4"/></svg>
+            Share score
+          </button>
+          <div class="share-status" id="shareStatus" role="status" aria-live="polite"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Health bar lives BELOW the stage so it sits near the strike line —
+         miss feedback ends up close to where the misses happen. -->
+    <div class="health-wrap" aria-hidden="true">
+      <div class="health"><div class="fill" id="healthFill"></div></div>
+    </div>
+
+  </div>
+</main>
+
+<p class="visually-hidden" aria-live="polite" id="srStatus"></p>
+
+<script src="js/celestialkeys.js"></script>
+<footer class="site-footer"><div class="sf-inner"></div></footer>
+</body>
+</html>

@@ -1,0 +1,11 @@
+/* ── 404.css — the not-found page ─────────────────────────────────
+   A centred notice on the shared starfield. Tokens from css/site.css. */
+.nf-main {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; min-height: 62vh;
+}
+.nf-code {
+  font-size: clamp(4.5rem, 16vw, 7rem); line-height: 1;
+  color: var(--gold); margin-bottom: 0;
+}
+.nf-line { color: var(--ink-muted); font-size: var(--text-md); margin: var(--space-4) 0 var(--space-6); }

@@ -1,0 +1,129 @@
+:root {
+    /* Page aliases for the calculator UI — all reference canonical tokens in
+       css/site.css. Base tokens (--bg, --surface, --surface-alt, --border,
+       --secondary, --gold-light, --serif, --sans) inherit directly. */
+    --cal-border-strong: var(--rule-strong);
+    --txt:           var(--text);
+    --cal-muted:     var(--ink-muted);   /* a11y: light muted, AA on dark surface */
+    --key:           var(--surface-alt); /* keypad keys: surface-alt, above the panel */
+    --key-hi:        var(--rule-strong);
+    --op:            var(--accent);
+    --op-hi:         var(--band);
+    --cal-accent:    var(--gold-ink);   /* light gold for small text, AA on dark */
+    --cal-accent-hi: var(--gold);
+    --eq:            var(--gold);
+    --eq-hi:         var(--gold-ink);
+    --danger:        var(--red);
+  }
+  * { box-sizing: border-box; }
+  html { height: 100%; }
+  body {
+    margin: 0; min-height: 100%;
+    background: var(--bg);
+    color: var(--txt);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+    display: flex; flex-direction: column;
+  }
+  .calc-stage { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; padding: 2rem 1rem; }
+  .sha { width: 420px; max-width: 96vw; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 18px; box-shadow: 0 4px 16px rgba(0,0,0,.06); }
+  .sha-title { font-size: 11px; color: var(--cal-accent); letter-spacing: .14em; text-transform: uppercase; font-weight: 600; margin-bottom: 12px; }
+  .sha-row { display: flex; gap: 8px; }
+  .sha-input { flex: 1; background: var(--surface-alt); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font-family: monospace; font-size: 13px; color: var(--txt); outline: none; min-width: 0; }
+  .sha-input:focus { border-color: var(--cal-border-strong); }
+  .sha-input::placeholder { color: var(--cal-muted); }
+  .sha-btn { background: var(--op); color: #fff; border: none; border-radius: 10px; padding: 10px 16px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background .12s; flex-shrink: 0; }
+  .sha-btn:hover { background: var(--op-hi); }
+  .sha-btn.ghost { background: var(--surface-alt); color: var(--secondary); border: 1px solid var(--border); padding: 10px 12px; }
+  .sha-btn.ghost:hover { background: var(--key-hi); }
+  .sha-error { font-size: 11px; color: var(--danger); margin-top: 8px; min-height: 16px; }
+  .sha-output { margin-top: 10px; background: var(--surface-alt); border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: none; }
+  .sha-out-row { display: flex; gap: 10px; margin-bottom: 7px; }
+  .sha-out-row:last-child { margin-bottom: 0; }
+  .sha-tag { font-size: 10px; font-weight: 700; letter-spacing: .06em; color: var(--cal-muted); min-width: 26px; padding-top: 1px; flex-shrink: 0; }
+  .sha-val { font-family: monospace; font-size: 11px; color: var(--txt); word-break: break-all; line-height: 1.6; }
+  .sha-val.hex { color: var(--cal-accent); }
+
+  .calc {
+    width: 420px; max-width: 96vw;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 18px;
+    box-shadow: 0 16px 48px rgba(0,0,0,.12), 0 4px 16px rgba(0,0,0,.06);
+  }
+  .title { font-size: 11px; color: var(--cal-accent); letter-spacing: .14em; text-transform: uppercase; font-weight: 600; margin: 2px 4px 14px; }
+  .modebar { display: flex; gap: 6px; background: var(--surface-alt); border-radius: 12px; padding: 5px; margin-bottom: 14px; }
+  .mode {
+    flex: 1; padding: 9px 0; font-size: 14px; font-weight: 600;
+    background: transparent; color: var(--secondary); border-radius: 8px;
+  }
+  .mode:hover { background: var(--key-hi); color: var(--txt); }
+  .mode.active { background: var(--op); color: #fff; }
+  .mode.active:hover { background: var(--op); }
+  button:disabled { opacity: .35; cursor: default; }
+  button:disabled:hover { background: var(--key); }
+  .screen {
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 8px 14px 12px;
+    margin-bottom: 16px;
+    text-align: right;
+    overflow: hidden;
+  }
+  .expr { height: 16px; font-size: 13px; color: var(--cal-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* Fixed two-row-tall display. The value wraps and is auto-scaled by JS to
+     fit this fixed height, so the screen never grows — a long value (e.g. a
+     128-bit number = 32 hex / 128 binary digits) just renders smaller and
+     wraps within the same box rather than pushing the keypad down. */
+  .main { font-family: 'JetBrains Mono', 'Fira Mono', monospace; font-size: 40px; font-weight: 400;
+          height: 96px; line-height: 1.2; overflow: hidden;
+          display: flex; align-items: flex-end; }
+  .main span { width: 100%; text-align: right; word-break: break-all; }
+  .main.error { color: var(--danger); }
+  .conv-panel { background: var(--surface-alt); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; margin-top: 12px; }
+  .conv { font-size: 12px; color: var(--cal-accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .conv span { color: var(--cal-muted); }
+  .conv2 { margin-top: 3px; font-size: 12px; color: var(--cal-accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .conv2 span { color: var(--cal-muted); }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  button {
+    border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px 0; font-size: 20px; font-weight: 600;
+    color: var(--txt); background: var(--key);
+    cursor: pointer; transition: background .12s, transform .04s;
+    -webkit-user-select: none; user-select: none;
+  }
+  button:hover { background: var(--key-hi); }
+  button:active { transform: translateY(1px); }
+  .op { background: var(--op); color: #fff; border-color: transparent; }
+  .op:hover { background: var(--op-hi); }
+  .op.active { background: var(--gold); color: var(--accent); }
+  .fn { background: var(--surface-alt); color: var(--secondary); font-size: 17px; }
+  .fn:hover { background: var(--key-hi); }
+  .digit-ab { color: var(--cal-accent); }
+  .digit-hex { color: var(--cal-accent); }
+  .eq { grid-column: span 4; background: var(--eq); color: var(--accent); border-color: transparent; }
+  .eq:hover { background: var(--eq-hi); }
+  .hint { margin: 14px 4px 0; font-size: 11px; color: var(--cal-muted); line-height: 1.5; }
+
+  /* Mobile: compress so the whole calculator fits one screen without scrolling.
+     C–F are always shown now, so the keypad is a fixed 6 rows + equals in
+     every mode and the height never changes between BIN/DEC/DOZ/HEX. */
+  @media (max-width: 480px) {
+    .calc-stage { padding: 10px; justify-content: flex-start; gap: 12px; }
+    .calc, .sha { padding: 12px; border-radius: 16px; }
+    .title { margin: 0 2px 8px; }
+    .modebar { margin-bottom: 8px; padding: 4px; gap: 4px; }
+    .mode { padding: 7px 0; font-size: 13px; }
+    .screen { padding: 6px 12px 8px; margin-bottom: 8px; }
+    .main { font-size: 30px; height: 72px; }
+    .grid { gap: 7px; }
+    button { padding: 11px 0; font-size: 18px; border-radius: 10px; }
+    .fn { font-size: 15px; }
+    .conv-panel { padding: 7px 12px; margin-top: 8px; }
+    .conv, .conv2 { font-size: 11px; }
+    .conv2 { margin-top: 2px; }
+    .hint { display: none; }
+  }
