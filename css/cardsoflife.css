@@ -1150,20 +1150,40 @@
          whose border-bottom already separates it (the body between them is
          hidden). */
     }
-    /* Standard card popups get ONE fixed height, so a card whose dates line
-       wraps to a second row no longer makes a taller box than a single-row one,
-       and the Joker (long note, now scrolled) matches too. 430px comfortably
-       fits the tallest normal case (2-row dates + the seven Life Script cards);
-       shorter cards leave only a few px of slack in the scroll region. In Time
-       period popups keep their own taller shell + scrolling body. */
-    .ccard-popup { height: 430px; }
-    .ccard-popup.cc-period { height: 460px; }
+    /* Standard card popups target ONE height (430px) so a card whose dates line
+       wraps to a second row doesn't make a taller box than a single-row one, and
+       the Joker (long note, scrolled) matches too. It's a FLOOR (min-height), not
+       a fixed height, so a smaller window than a maximised browser — e.g. an
+       installed-app window, or one where a browser/OS minimum-font-size enlarges
+       the labels — lets the box GROW to show the full Life Script instead of
+       clipping it (up to the 88vh cap from site.css). Normal windows still settle
+       at 430px, so the uniform look is preserved. In Time period popups keep
+       their own taller floor + scrolling body. */
+    .ccard-popup { height: auto; min-height: 430px; }
+    .ccard-popup.cc-period { min-height: 460px; }
     .ccard-life-script h4 {
       font-size: .6rem; font-weight: 600; letter-spacing: .14em;
       text-transform: uppercase; color: var(--muted);
       text-align: center; margin: 0 0 .6rem;
     }
+    /* Container so the labels (and glyphs) can size in cqw — i.e. proportional
+       to the popup/card width — instead of a fixed size that only happens to fit
+       at one width. */
+    .ccard-life-script { container-type: inline-size; }
     .ccard-life-script .ls-grid { max-width: 340px; margin: 0 auto; }
+    /* Planet label + glyph scale WITH the card width (cqw), clamped readable, so
+       a narrower popup shrinks them to fit rather than clipping. Each label is
+       also locked inside its own column and capped to the card width: if a
+       browser/OS minimum-font-size (common in installed PWAs) forces it larger
+       than that floor allows, it clips with an ellipsis in its own lane —
+       NEP…, URA… — rather than colliding with its neighbours. */
+    .ccard-life-script .ls-col { min-width: 0; overflow: hidden; }
+    .ccard-life-script .ls-planet { font-size: clamp(.72rem, 4cqw, 1rem); }
+    .ccard-life-script .ls-planet-name {
+      font-size: clamp(.4rem, 2.3cqw, .56rem);
+      max-width: 100%; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis; letter-spacing: .02em;
+    }
 
     /* ── Relationship life-script connections ──── */
     /* One mini life-script grid per direction found (the partner's card lit

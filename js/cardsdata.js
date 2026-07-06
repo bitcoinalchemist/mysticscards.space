@@ -904,7 +904,11 @@ function renderLifeScriptInto(c, host, wrap, opts) {
     const clickAttr = targetIdx >= 0 ? ` onclick="openCompareCard(${targetIdx})" style="cursor:pointer"` : '';
     const isPick   = opts.highlight && cc.rank === opts.highlight.rank && cc.suit === opts.highlight.suit;
     const pickCls  = isPick ? ' ls-conn-pick' : '';
-    const nameHTML = opts.showPlanetNames ? `<span class="ls-planet-name">${planet}</span>` : '';
+    // 3-letter planet labels (MER/VEN/MAR/JUP/SAT/URA/NEP) — always fit one line
+    // in the compact life-script columns, so they never truncate/overlap even
+    // when a browser/OS minimum-font-size (installed apps) enlarges them. Full
+    // name kept as a hover/AT tooltip.
+    const nameHTML = opts.showPlanetNames ? `<span class="ls-planet-name" title="${planet}">${planet.slice(0,3).toUpperCase()}</span>` : '';
     return `<div class="ls-col">
       <span class="ls-planet" title="${planet}">${SPREAD_PLANET_SYM[planet]}</span>
       ${nameHTML}
