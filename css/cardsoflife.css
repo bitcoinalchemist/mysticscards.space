@@ -1159,8 +1159,19 @@
        clipping it (up to the 88vh cap from site.css). Normal windows still settle
        at 430px, so the uniform look is preserved. In Time period popups keep
        their own taller floor + scrolling body. */
-    .ccard-popup { height: auto; min-height: 430px; }
-    .ccard-popup.cc-period { min-height: 460px; }
+    .ccard-popup { height: 430px; }
+    .ccard-popup.cc-period { height: 460px; }
+    /* Installed PWA (standalone / WCO / etc.): a browser or OS minimum-font-size
+       enlarges the small header text (dates, subtitle, planets, displacement),
+       so the SAME card needs more height than in a normal browser tab — a fixed
+       430px would clip it there. Give the popup a taller fixed size in app mode
+       so every popup is still identical AND nothing is cut off; the browser keeps
+       the compact 430/460. The Life Script region (flex + overflow) absorbs the
+       header difference and scrolls the Joker's note, so all popups match. */
+    @media (display-mode: standalone), (display-mode: window-controls-overlay),
+           (display-mode: minimal-ui), (display-mode: fullscreen) {
+      .ccard-popup, .ccard-popup.cc-period { height: 515px; }
+    }
     .ccard-life-script h4 {
       font-size: .6rem; font-weight: 600; letter-spacing: .14em;
       text-transform: uppercase; color: var(--muted);
