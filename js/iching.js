@@ -846,7 +846,11 @@
         : '<svg width="26" height="4" aria-hidden="true"><rect x="0" width="11" height="4" rx="1.5" fill="currentColor"/><rect x="15" width="11" height="4" rx="1.5" fill="currentColor"/></svg>';
       tp.className = 'cl-type' + (lt.changing ? ' changing' : '');
     }
-    el.className = 'spread-card ck-host clickable ' + SUIT_CLASS[card.suit] +
+    // No 'clickable' class and no handler — the cast cards are display-only
+    // (the cast-card popup was removed 2026-07-06; the hexagram popup on the
+    // sequence chart is the reading's detail view). Keeping 'clickable' off
+    // also keeps site.js's a11y tagger from re-marking them as buttons.
+    el.className = 'spread-card ck-host ' + SUIT_CLASS[card.suit] +
       (card.court ? ' changing' : '');
     el.title = 'Line ' + (idx + 1) + ' · ' + card.rank + card.suit;
     // 3D flip: card lands face-down (shared .card-back) and turns to reveal its
@@ -856,14 +860,6 @@
         '<div class="ck-side ck-front">' + cardFaceHTML(card) + '</div>' +
         '<div class="ck-side ck-back"><div class="card-back"><span class="cb-coin"></span></div></div>' +
       '</div>';
-    el.onclick = function() { openCastCardPopup(idx); };
-    // Keyboard-operable: site.js's global Enter/Space handler activates
-    // elements flagged with _a11yCard (the slot existed before that scan ran).
-    el.setAttribute('role', 'button');
-    el.tabIndex = 0;
-    el.setAttribute('aria-label', 'Line ' + (idx + 1) + ', ' + card.rank + card.suit);
-    el.removeAttribute('aria-hidden');
-    el._a11yCard = true;
   }
 
   // Aces: currently KEPT in the pack — a red ace reads as young yang, a black
@@ -1069,39 +1065,9 @@
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); castAll(); }
   });
 
-  // ── Cast card popup ──────────────────────────────────────
-  var _castIdx = 0;
-
-  function updateLineType() {
-    var card = draws[_castIdx];
-    var cls = 'ic-line-seg' + (card.court ? ' changing' : '');
-    var inner = card.red
-      ? '<div class="' + cls + ' ic-yang-seg"></div>'
-      : '<div class="' + cls + ' ic-yin-seg"></div><div class="' + cls + ' ic-yin-seg"></div>';
-    document.getElementById('icLineType').innerHTML =
-      '<div class="ic-line-display">' + inner + '</div>';
-  }
-
-  function openCastCardPopup(idx) {
-    _castIdx = idx;
-    openCompareCard(findCardIdx(draws[idx]));
-    updateLineType();
-  }
-
-  // Exposed globally so HTML onclick and the post-DOM script can reach it
-  window.navigateCast = function(dir) {
-    _castIdx = (_castIdx + dir + draws.length) % draws.length;
-    openCompareCard(findCardIdx(draws[_castIdx]));
-    updateLineType();
-  };
-
-  // Keyboard: Escape closes, arrows navigate (document exists at setup time)
-  document.addEventListener('keydown', function(e) {
-    if (!document.getElementById('ccardOverlay').classList.contains('open')) return;
-    if (e.key === 'Escape')     { closeCompareCard();      return; }
-    if (e.key === 'ArrowLeft')  { window.navigateCast(-1); return; }
-    if (e.key === 'ArrowRight') { window.navigateCast(1);  return; }
-  });
+  // (The cast-card popup — click a dealt card for its suit/rank reading — was
+  // removed 2026-07-06; the cards are display-only. The hexagram popup opened
+  // from the sequence chart is untouched.)
 
   // Show the six empty line slots up front (a shared reading below fills them).
   buildSlots();
@@ -1119,38 +1085,6 @@
     sBtn.style.visibility = 'visible';
   })();
 
-})();
-
-window.CC_NO_DISPLACE_LINKS = true; // popup is bound to the cast sequence
-
-// Popup backdrop click + touch swipe — runs after the overlay HTML exists
-(function(){
-  document.getElementById('ccardOverlay').addEventListener('click', function(e) {
-    if (e.target === this) closeCompareCard();
-  });
-  // Mobile gestures on the popup: swipe LEFT/RIGHT navigates the cast sequence,
-  // swipe UP dismisses. The vertical-close fires only when .ccard-body didn't
-  // scroll across the touch — a normal reading-scroll never accidentally closes.
-  var _tx = null, _ty = null, _startScroll = 0;
-  var _ccBody = document.querySelector('#ccardPopup .ccard-body');
-  document.getElementById('ccardPopup').addEventListener('touchstart', function(e) {
-    _tx = e.touches[0].clientX;
-    _ty = e.touches[0].clientY;
-    _startScroll = _ccBody ? _ccBody.scrollTop : 0;
-  }, { passive: true });
-  document.getElementById('ccardPopup').addEventListener('touchend', function(e) {
-    if (_tx === null) return;
-    var dx = e.changedTouches[0].clientX - _tx;
-    var dy = e.changedTouches[0].clientY - _ty;
-    var dScroll = (_ccBody ? _ccBody.scrollTop : 0) - _startScroll;
-    _tx = null; _ty = null;
-    if (-dy > 60 && Math.abs(dy) > Math.abs(dx) && dScroll === 0) {
-      closeCompareCard(); return;
-    }
-    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
-      window.navigateCast(dx < 0 ? 1 : -1);
-    }
-  });
 })();
 
 (function(){

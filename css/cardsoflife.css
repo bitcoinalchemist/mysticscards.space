@@ -48,7 +48,7 @@
     .divider { width: 40px; height: 1px; background: var(--gold); margin: 1.25rem 0; }
 
     /* ── Birth Card Finder ───────────────────────────────────── */
-    .finder { background: transparent; padding: 0; }  /* the suits row (#elements) is the first section now; the gap above the Finder comes from #elements + #finder */
+    .finder { background: transparent; padding: 0; }  /* first section since the Card Elements row moved to the page foot (2026-07-06); top gap from main > h1 + .page-section */
     .finder-top {
       max-width: 575px; margin: 0 auto; padding: 0 1.25rem;
       display: flex; flex-direction: column; gap: 0.6rem;
@@ -57,6 +57,13 @@
     .finder-inner {
       max-width: 575px; margin: 0 auto; padding: 0;
       display: flex; flex-direction: column; align-items: flex-start; gap: .75rem;
+      /* width:100% (+ min-width:0) makes this a DEFINITE width — its old
+         shrink-to-fit width (margin:0 auto suppresses flex-item stretch) was
+         sized by the fixed-width finder-form's min-content, so in duo mode on
+         narrow phones the box's max-width:100% resolved against an already-
+         overflowing 424px parent and never clamped. Definite width → the form
+         clamps to the phone width and the wheels compress instead. */
+      width: 100%; min-width: 0;
     }
     /* Single-birthday result card — sized to match the relationship
        triptych's centre card so swapping between solo and relationship
@@ -64,11 +71,19 @@
     .result-pip-card { width: 78px; height: 108px; flex-shrink: 0; }
     .rel-result-pip  { border-color: var(--gold) !important; background: var(--card-paper) !important; }
     .finder-form {
-      /* Fit-content keeps the box snug around its actual children — in
-         solo mode it's just person 1 + the chip; when partner opens,
-         the form widens to accommodate the second slot. */
-      width: fit-content;
+      /* STANDARDISED widths (2026-07-06; replaced fit-content, whose width
+         drifted with content at every breakpoint): one fixed target per mode,
+         the same at every screen size, clamped only by max-width:100% on
+         narrow phones. Solo → duo animates the box width itself, in step with
+         the partner slot's own .4s slide (same duration + easing), so the two
+         reveals share one motion. Numbers: solo fits two tab columns at their
+         minimum (~108px each) + padding; duo adds room for the second person
+         slot; the wheels are flex and absorb the slack. */
+      --fw-solo: 272px;
+      --fw-duo: 424px;
+      width: var(--fw-solo);
       max-width: 100%;
+      transition: width .4s cubic-bezier(.4, 0, .2, 1);
       align-self: center;
       background: var(--surface);
       border: 1px solid var(--border);
@@ -76,6 +91,11 @@
       padding: 1.25rem 1.5rem;
       box-shadow: var(--sh-sm);
     }
+    .finder-form:has(.person-partner:not(.is-ghost)) { width: var(--fw-duo); }
+    @media (prefers-reduced-motion: reduce) { .finder-form { transition: none; } }
+    /* With the form width fixed per mode, the person slots flex to fill it —
+       person 1 relaxes a little in solo and both people share evenly in duo. */
+    .person-slot { flex: 1; }
     .finder-inputs { display: flex; align-items: center; gap: .6rem; }
     /* Source-of-truth selects — the wheel widgets write to them and fire
        change events; the rest of the page (maybeFindUnified, share link,
@@ -286,6 +306,68 @@
     .dd-toggle:focus-visible {
       outline: 2px solid var(--gold); outline-offset: 2px;
     }
+    /* Pickers row — revealed under the wheels by the card-picker chevron
+       (.finder-form.cp-on). Two labelled launchers for the deck + calendar
+       popups; replaced the old Rank/Suit dropdowns. */
+    /* 2×2 grid of compact, text-only tabs (icons dropped, smaller than the old
+       flex row so they no longer force the fit-content finder box wider). */
+    /* Collapse wrapper — the shared grid-rows 0fr→1fr idiom (same as the
+       trays below), so opening the expander UNFURLS instead of display-
+       snapping. visibility flips after the collapse so the hidden tabs
+       leave the tab order. */
+    .finder-pickers-wrap {
+      display: grid; grid-template-rows: 0fr; width: 100%;
+      visibility: hidden;
+      transition: grid-template-rows .3s var(--ease), visibility 0s .3s;
+    }
+    .finder-form.cp-on .finder-pickers-wrap {
+      grid-template-rows: 1fr; visibility: visible;
+      transition: grid-template-rows .3s var(--ease);
+    }
+    .finder-pickers-min { overflow: hidden; min-height: 0; }
+    @media (prefers-reduced-motion: reduce) { .finder-pickers-wrap { transition: none; } }
+    /* ALWAYS a centred 2×2 — the old 1-col (solo) → 2-col (duo) reflow snapped
+       in a single frame. Tracks are minmax(0,160px): at the duo width they sit
+       at their full 160px; at the solo width they compress to ~108px (the
+       buttons still fit); while the box width animates between modes the
+       tracks grow/shrink with it every frame — no snap. */
+    .finder-pickers {
+      display: grid; grid-template-columns: repeat(2, minmax(0, 160px));
+      gap: .4rem; justify-content: center; margin: .9rem auto 0;
+    }
+    .finder-picker-btn {
+      display: inline-flex; align-items: center; justify-content: center; text-align: center;
+      font-family: var(--sans); font-size: .6rem; letter-spacing: .05em;
+      text-transform: uppercase; font-weight: 600; line-height: 1.1;
+      color: var(--gold-ink); background: transparent;
+      border: 1px solid var(--rule-strong); border-radius: 7px;
+      padding: .4rem .3rem; cursor: pointer;
+      transition: border-color var(--ease), color var(--ease), background var(--ease);
+    }
+    .finder-picker-btn:hover { border-color: var(--gold); color: var(--gold); background: rgba(199,154,84,.08); }
+    .finder-picker-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+    /* Active launcher — the tray/popup it controls is open. */
+    .finder-picker-btn.is-active { border-color: var(--gold); color: var(--gold); background: rgba(199,154,84,.1); }
+    /* Inline calendar tray (prototype) — a collapsible panel under the finder
+       box (grid-rows 0fr→1fr, the shared collapse idiom). Reuses .cal-modal for
+       the grid's chip colours + panel chrome. */
+    .finder-tray { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .3s var(--ease); }
+    .finder-tray.open { grid-template-rows: 1fr; }
+    .finder-tray-min { overflow: hidden; min-height: 0; }
+    /* Trays sit directly on the starfield — no purple panel. An open tray runs
+       to its NATURAL height (2026-07-06; the old max-height:62vh + overflow:auto
+       made tall trays like Calendar a scrollbox-within-the-page — you had to
+       scroll inside the tray to reach its bottom). The page just gets longer;
+       the result section sits below wherever the tray ends. */
+    .finder-tray .cal-modal {
+      width: 100%; max-width: 600px; margin: .9rem auto 0;
+      /* max-height:none guards against the ≤500px `.cal-modal{max-height:90vh}`
+         rule further down (meant for the OVERLAY calendar) — with no
+         overflow:auto here a cap would clip, not scroll. */
+      max-height: none;
+      background: transparent; box-shadow: none; border-radius: 0; padding: 0;
+    }
+    @media (prefers-reduced-motion: reduce) { .finder-tray { transition: none; } }
     /* When dropdown mode is on, rotate the chevron 180° — same gesture
        grammar as #rCollapse / the Tools popout. */
     .finder-form.dd-on .dd-toggle svg { transform: rotate(180deg); }
@@ -455,7 +537,6 @@
     .result-share svg { width: 13px; height: 13px; }
     /* Minimised: hide the long content; keep the card, name, meta facts and the
        toggle visible. (The Olney panel's collapsed rule is in the Olney block.) */
-    .finder-result.collapsed .result-life-script,
     .finder-result.collapsed .result-body,
     .rel-result.collapsed .result-body,
     .rel-result.collapsed .rel-bond,
@@ -542,8 +623,7 @@
     }
     /* Full profile WITHOUT the surface-alt boxes — sections sit on the
        starfield ground (heading underlines + keynote rule kept for structure) */
-    .finder-result .result-box,
-    .finder-result .result-life-script { background: none; border: none; }
+    .finder-result .result-box { background: none; border: none; }
     .result-left {
       display: flex; flex-direction: column; gap: 1rem;
     }
@@ -560,25 +640,10 @@
       height: 100%;
     }
     .result-right .result-grid .result-box:last-child { height: 100%; }
-    /* Life script cards in finder: 7-col 1fr / aspect-ratio 5/7 grid.
-       Width = 1:1 with the Quadration grid's ACTUAL rendered width — set
-       in JS by syncFinderGridsFromQuadration (ResizeObserver on the
-       spread-grid). Falls back to the --quadration-max-w cap before JS
-       runs. The relationship Connections mini-grid follows the same
-       formula. No mobile override — the 1:1 ratio holds at every
-       viewport. */
-    .finder-result-inner .ls-grid {
-      grid-template-columns: repeat(7, minmax(0, 1fr));
-      gap: .45rem .35rem;
-      justify-content: center;
-      max-width: var(--quadration-actual-w, var(--quadration-max-w));
-      margin: 0 auto;
-    }
-    .finder-result-inner .ls-card {
-      width: 100% !important;
-      min-width: 0 !important;
-      aspect-ratio: 5 / 7;
-    }
+    /* (The Finder-scoped .ls-grid / .ls-card 1:1-with-Quadration overrides were
+       removed 2026-07-06 when Life Script moved to the card popup. The
+       relationship Connections mini-grid keeps its own --quadration-actual-w
+       sizing via .rel-conn below.) */
     .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
     .result-box {
       background: var(--surface-alt); border: 1px solid var(--border);
@@ -655,9 +720,6 @@
       border-top: 1px solid rgba(255,255,255,.06);
     }
     .ns-sub[hidden] { display: none; }
-    /* Life Script lives inside the popout now (shared by both tabs).
-       Give it a little breathing room above the tab content above. */
-    .ns-detailmin .result-life-script { margin-top: 1.25rem; }
     .ns-sub-h {
       font-size: .68rem; font-weight: 600; letter-spacing: .12em;
       text-transform: uppercase; color: var(--text-muted);
@@ -668,26 +730,12 @@
     @media (prefers-reduced-motion: reduce) {
       .ns-pop, .ns-detailwrap, .ns-card { transition: none; }
     }
-    .result-life-script {
-      background: var(--surface-alt); border: 1px solid var(--border);
-      border-radius: var(--r-md); padding: 1.1rem 1.15rem;
-    }
-    .result-life-script h4 {
-      font-size: .68rem; font-weight: 600; letter-spacing: .12em;
-      text-transform: uppercase; color: var(--text-muted);
-      margin-bottom: .85rem; padding-bottom: .5rem;
-      border-bottom: 1px solid var(--border);
-      text-align: center;
-    }
+    /* (.result-life-script chrome removed 2026-07-06 — Life Script moved to the
+       card popup; see .ccard-life-script.) */
     @media (max-width: 700px) {
       .result-body { grid-template-columns: 1fr; }
       .finder-result .result-body { grid-template-columns: 1fr; }
       .result-body .result-grid { grid-template-columns: 1fr 1fr; }
-      .result-life-script { padding: 1rem .65rem; }
-      /* No max-width override here — the 1:1-with-quadration calc applies
-         at every width so the cards always match the quadration's
-         actual rendered card size. */
-      .finder-result-inner .ls-card { width: 100% !important; min-width: 0 !important; }
     }
 
     /* ── Relationship Finder ─────────────────────────────────────── */
@@ -856,7 +904,10 @@
        padding/border, so the closed state also zeroes those — a no-op for
        .tool-modal (no border/background of its own to zero) but needed for
        .q-settings-inner's boxed chrome, defined locally over in Quadrations. */
-    .tool-panel, .q-settings-panel {
+    /* (.q-settings-panel used to share this inline-accordion mechanism; it is now
+       a floating popup — see its own rules below — so only the retired
+       .tool-panel keeps these.) */
+    .tool-panel {
       display: grid;
       grid-template-rows: 0fr;
       opacity: 0;
@@ -864,7 +915,7 @@
       transition: grid-template-rows .35s ease, opacity .25s ease,
                   margin .25s ease, visibility 0s linear .35s;
     }
-    .tool-panel.open, .q-settings-panel.open {
+    .tool-panel.open {
       grid-template-rows: 1fr;
       opacity: 1;
       visibility: visible;
@@ -884,16 +935,15 @@
        selector drops to 2 classes and loses that tie-break, which is exactly
        what broke Tools panels (30px of dead space left when "closed") during
        this consolidation until caught by a live height check. */
-    .tool-panel > .tool-modal, .q-settings-panel > .q-settings-inner {
+    .tool-panel > .tool-modal {
       min-height: 0; overflow: hidden;
       transition: padding .35s ease, border-color .35s ease, background .35s ease;
     }
-    .tool-panel:not(.open) > .tool-modal, .q-settings-panel:not(.open) > .q-settings-inner {
+    .tool-panel:not(.open) > .tool-modal {
       padding-top: 0; padding-bottom: 0;
     }
     @media (prefers-reduced-motion: reduce) {
-      .tool-panel, .tool-panel.open, .tool-panel > .tool-modal,
-      .q-settings-panel, .q-settings-panel.open, .q-settings-panel > .q-settings-inner { transition: none; }
+      .tool-panel, .tool-panel.open, .tool-panel > .tool-modal { transition: none; }
     }
     /* Tool panels render inline with NO inner box — transparent, no shadow or
        radius, so the content sits directly on the starfield (flat Tools section). */
@@ -907,7 +957,11 @@
     /* ── Browse All Cards ────────────────────────────────────── */
     /* Each browse cell carries its solar value above the card face */
     .browse-cell { display: flex; flex-direction: column; align-items: center; gap: .2rem; }
-    .browse-cell .spread-card { width: 100%; }
+    /* Deck cards render as calendar-style tiles (roomier than the dense calendar
+       grid, so the token is a touch larger). */
+    .browse-cell .cal-chip { width: 100%; padding: .45rem 0; cursor: pointer; }
+    .browse-cell .cal-token { font-size: .82rem; }
+    @media (max-width: 560px) { .browse-cell .cal-token { font-size: .68rem; } }
     .browse-sv {
       font-family: var(--serif); font-size: .95rem; font-weight: 700; line-height: 1;
       color: var(--gold); font-variant-numeric: tabular-nums; letter-spacing: .02em;
@@ -942,7 +996,7 @@
     .sv-calc .browse-sv-formula { margin: 0; }
     .sv-result-card { font-style: normal; font-weight: 600; color: var(--gold-ink); }
     /* Found-card highlight in the grid — a gold ring, no scroll. */
-    .browse-cell.sv-found .spread-card {
+    .browse-cell.sv-found .cal-chip {
       box-shadow: 0 0 0 2px var(--gold), 0 0 16px rgba(199,154,84,.55);
     }
 
@@ -1075,6 +1129,42 @@
       .ls-planet-name { font-size: .48rem; }
     }
 
+    /* ── Life Script inside the card compare-popup ──── */
+    /* Sits between .ccard-body (the scrolling reading) and .ccard-footer as a
+       fixed strip. The generic .ls-grid / .ls-card rules above do the layout;
+       here we only add the wrapper chrome + a natural width cap. No
+       --quadration-actual-w matching (that was Finder-specific) — the seven
+       cards just size within the popup's own max-width. */
+    .ccard-life-script {
+      padding: .85rem 1.75rem 1rem;
+      background: var(--surface);
+      /* Flexible scroll region so every standard popup can share ONE fixed
+         height regardless of how many rows the dates line wraps to — a taller
+         header just shrinks this area rather than growing the whole box. The
+         Joker shows a long note here (instead of the seven cards); it simply
+         scrolls within this region. */
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      /* No border-top: in a plain card popup this follows the header directly,
+         whose border-bottom already separates it (the body between them is
+         hidden). */
+    }
+    /* Standard card popups get ONE fixed height, so a card whose dates line
+       wraps to a second row no longer makes a taller box than a single-row one,
+       and the Joker (long note, now scrolled) matches too. 430px comfortably
+       fits the tallest normal case (2-row dates + the seven Life Script cards);
+       shorter cards leave only a few px of slack in the scroll region. In Time
+       period popups keep their own taller shell + scrolling body. */
+    .ccard-popup { height: 430px; }
+    .ccard-popup.cc-period { height: 460px; }
+    .ccard-life-script h4 {
+      font-size: .6rem; font-weight: 600; letter-spacing: .14em;
+      text-transform: uppercase; color: var(--muted);
+      text-align: center; margin: 0 0 .6rem;
+    }
+    .ccard-life-script .ls-grid { max-width: 340px; margin: 0 auto; }
+
     /* ── Relationship life-script connections ──── */
     /* One mini life-script grid per direction found (the partner's card lit
        up in the seat it occupies); the whole block hides when there's none. */
@@ -1171,6 +1261,54 @@
     .age-input::-webkit-outer-spin-button { -webkit-appearance: none; }
     .age-input:focus { outline: none; border-color: var(--gold); }
 
+    /* ── Crown-row bookend cells ──────────────────────────────────────
+       The crown row's two leading / two trailing spacer columns are merged
+       into a pair of host cells (buildSpreadGrid): the Joker tile on the left,
+       the relocated settings gear + age wheel on the right. Each spans two of
+       the seven columns; content is centred so the middle three crown seats
+       keep their exact position. */
+    .crown-side { grid-column: span 2; min-width: 0; }
+    .crown-joker { display: flex; align-items: center; justify-content: center; }
+    /* The Joker sits jauntily tilted (it belongs to no seat) — a static rotate,
+       kept through hover so the shared .spread-card:hover lift doesn't reset it. */
+    .crown-joker .spread-card { width: 48%; aspect-ratio: 5 / 7; transform: rotate(-70deg); }
+    .crown-joker .spread-card:hover { transform: rotate(-70deg) translateY(-2px); }
+    /* The controls cell is a query container so the age stepper can scale as a
+       percentage of the cell width — otherwise it overflows / breaks when the
+       grid narrows. The gear is pinned to the cell's top-right corner; the age
+       stepper (or, in Spirit/Life, the mode label) sits centred. */
+    .crown-controls {
+      position: relative;
+      container-type: inline-size;
+      /* display:block (not flex) — a flex container reports the wrong query
+         inline-size here, so cqw wouldn't track the cell width. The age
+         selector fills the height and centres itself instead. */
+      display: block;
+      min-width: 0;
+    }
+    /* The age selector + gear are one centred group (the gear is appended into
+       .age-selector by js/cardsoflife.js), so they scale and align together
+       instead of the gear floating in the cell corner. Stacked as a column with
+       the gear on top (order:-1), the stepper below. */
+    .crown-controls .age-selector { height: 100%; flex-direction: column; gap: clamp(4px, 5cqw, 9px); }
+    .crown-controls #qSettingsBtn { flex: 0 0 auto; order: -1; }
+    /* The stepper scales with the cell width via cqw (≈% of the cell): each
+       part's box is sized in cqw, clamped readable-at-widest / legible-at-
+       narrowest, so it never overflows when the grid narrows. min-width:0 lets
+       the field shrink past its intrinsic width. Scoped by #crownControls (id)
+       so it beats the base .age-btn / .age-input / .spreads .age-btn rules.
+       (cqw only tracks the cell because .crown-controls is display:block.) */
+    #crownControls .age-controls { font-size: clamp(7.5px, 10cqw, 15px); gap: clamp(2px, 3cqw, 6px); }
+    #crownControls .age-btn {
+      width: clamp(15px, 20cqw, 30px); height: clamp(15px, 20cqw, 30px);
+      font-size: 1em; min-width: 0; flex: 0 0 auto; padding: 0;
+    }
+    #crownControls .age-input {
+      width: clamp(20px, 27cqw, 46px); height: clamp(15px, 20cqw, 30px);
+      font-size: 1em; min-width: 0; padding: 0 2px; border-radius: var(--r-sm);
+    }
+    #crownControls .q-mode-current { font-size: clamp(.5rem, 9cqw, .62rem); }
+
     /* Spread grid */
     .spread-wrap { overflow-x: auto; padding: 1rem 0; -webkit-overflow-scrolling: touch; flex: 1; min-width: 0; display: flex; justify-content: center; }
     /* Controls header: the age-stepper/mode-label slot stays dead-centre
@@ -1225,28 +1363,30 @@
       font-family: var(--sans); font-size: .62rem; font-weight: 600;
       letter-spacing: .14em; text-transform: uppercase; color: var(--gold-ink);
     }
-    /* Absolutely positioned against .q-quad-header (not a flex sibling of
-       the centred age-selector) so the gear hugs the panel's right edge. */
-    .q-settings-wrap { position: absolute; right: 0; top: 50%; transform: translateY(-50%); }
     .q-disp-icon[aria-expanded="true"] { border-color: var(--gold); color: var(--gold); }
-    /* Inline accordion — was a floating position:absolute popover, which
-       rendered UNDER the full-width card grid on narrow screens and made
-       its own options unreachable; expanding in normal flow instead pushes
-       the grid down, so there's nothing left to overlap.
-       The open/close MECHANICS are shared with .tool-panel (Tools section)
-       — see the consolidated .tool-panel, .q-settings-panel rules there.
-       Only this component's own sizing and boxed chrome live here: capped
-       width (the popover's old 300px, now just centered instead of
-       anchored to the gear) and the surface/border/radius box, zeroed out
-       (alongside the shared padding-zeroing) when closed so no hairline
-       sliver of the box is left visible at "0 height." */
-    .q-settings-panel { width: 100%; max-width: 300px; margin: 0 auto; }
+    /* Settings menu — a floating popup (it was briefly an inline accordion).
+       The first popover version rendered UNDER / clipped by the card grid's
+       overflow on narrow screens; to dodge that, js/cardsoflife.js relocates
+       #qSettingsPanel to <body> and sets its top/left from the gear's rect on
+       open, so it escapes every overflow ancestor and floats on top. */
+    .q-settings-panel {
+      position: absolute; z-index: 200;
+      width: min(300px, 92vw);
+      opacity: 0; visibility: hidden;
+      transform: translateY(-6px) scale(.98); transform-origin: top right;
+      transition: opacity .18s ease, transform .18s ease, visibility 0s linear .18s;
+      pointer-events: none;
+    }
+    .q-settings-panel.open {
+      opacity: 1; visibility: visible; transform: none; pointer-events: auto;
+      transition: opacity .18s ease, transform .18s ease;
+    }
     .q-settings-inner {
       background: var(--surface); border: 1px solid var(--border-strong);
-      border-radius: 10px; padding: .2rem .85rem;
+      border-radius: 10px; padding: .35rem .85rem; box-shadow: var(--sh-lg);
     }
-    .q-settings-panel:not(.open) .q-settings-inner {
-      border-color: transparent; background: transparent;
+    @media (prefers-reduced-motion: reduce) {
+      .q-settings-panel { transition: none; }
     }
     .q-setting-row {
       display: flex; align-items: center; justify-content: space-between;
@@ -1378,13 +1518,43 @@
        carries .ls-lifespread at age 0, set in buildAnnualGrid). The flip uses
        transform; during an age change the brief FLIP re-seat of these seven won't
        tween — unnoticeable. */
-    .ls-lifespread .spread-card.ls-pick {
+    /* The one-shot flip is the ENTRANCE flourish; a quieter persistent state
+       then takes over so the seven stay distinguished no matter when the user
+       arrives (setScript often fires from the Finder while they're scrolled
+       away, missing the 2.5s flip). The persistent pair mirrors .finder-pick's
+       glow+shine but gentler/softer-gold so it stays subordinate to the birth
+       card's own gold ring. Gated :not(.finder-pick) so a card that is BOTH
+       the birth pick and one of its own script cards keeps only the prominent
+       gold treatment (no competing double glow / double ::after shine). */
+    .ls-lifespread .spread-card.ls-pick:not(.finder-pick) {
       z-index: 3;
-      animation: lsTurn 2.5s cubic-bezier(.45,.05,.3,1);
-      animation-delay: calc(var(--ls-i, 0) * .2s);
       /* As the card turns past 90deg its (mirrored) front hides — the .ls-back
          overlay turns to meet the viewer instead. */
       backface-visibility: hidden;
+      /* Flip once (per-card --ls-i stagger), then the idle glow starts exactly
+         as that card's flip ends (2.5s + its own delay) and breathes forever.
+         `both` fill on lsTurn holds its final frame through the handoff so
+         there's no flash between flip-end and glow-start. */
+      animation:
+        lsTurn 2.5s cubic-bezier(.45,.05,.3,1) calc(var(--ls-i, 0) * .2s) both,
+        lsIdleGlow 2.9s ease-in-out calc(2.5s + var(--ls-i, 0) * .2s) infinite;
+    }
+    /* Gentle diagonal shine, softer than .finder-pick's, that begins after the
+       flip and ripples outward from the birth card in script order (staggered
+       by --ls-i) so the seven don't all flash in unison. */
+    .ls-lifespread .spread-card.ls-pick:not(.finder-pick)::after {
+      content: ''; position: absolute; inset: 0; border-radius: inherit;
+      background: linear-gradient(65deg, transparent 36%, rgba(240,224,190,.24) 47%, rgba(255,246,224,.52) 50%, rgba(240,224,190,.24) 53%, transparent 64%);
+      transform: translateX(130%);
+      animation: finderShine 6.5s linear infinite;
+      animation-delay: calc(2.6s + var(--ls-i, 0) * .5s);
+      pointer-events: none; z-index: 3;
+    }
+    /* Soft, softer-gold breathing glow — no solid ring (that stays the birth
+       card's signature), just a gentle halo so the seven read as a set. */
+    @keyframes lsIdleGlow {
+      0%, 100% { box-shadow: 0 0 0 2px rgba(205,168,95,.24), 0 0 10px 1px rgba(205,168,95,.22), 0 7px 15px rgba(0,0,0,.24); }
+      50%      { box-shadow: 0 0 0 3px rgba(205,168,95,.38), 0 0 17px 3px rgba(205,168,95,.40), 0 8px 17px rgba(0,0,0,.26); }
     }
     /* One slow, deliberate turn: face → back (held a beat) → face. The per-card
        --ls-i delay (.2s steps) rolls the turn out from the birth card as a wave.
@@ -1431,11 +1601,15 @@
       100% { transform: perspective(420px) rotateY(540deg); box-shadow: 0 2px 4px rgba(0,0,0,.16); }
     }
     @media (prefers-reduced-motion: reduce) {
-      /* No flip — keep them standing out with a soft static shadow, and never
-         surface the back (it stays back-facing → hidden). */
-      .ls-lifespread .spread-card.ls-pick {
-        animation: none; box-shadow: 0 7px 13px rgba(0,0,0,.26);
+      /* No flip and no breathing — but keep the seven clearly distinguished
+         with a fixed soft gold-tinted halo (a static echo of lsIdleGlow), and
+         never surface the back (it stays back-facing → hidden). Gated the same
+         way so a both-card keeps only the birth card's gold ring. */
+      .ls-lifespread .spread-card.ls-pick:not(.finder-pick) {
+        animation: none;
+        box-shadow: 0 0 0 2px rgba(205,168,95,.30), 0 0 9px 1px rgba(205,168,95,.22), 0 7px 13px rgba(0,0,0,.26);
       }
+      .ls-lifespread .spread-card.ls-pick:not(.finder-pick)::after { animation: none; opacity: 0; }
       .ls-lifespread .ls-back { animation: none; }
     }
 
@@ -1992,7 +2166,7 @@
        which was clipping the old dropdown so it wouldn't scroll). Holds the
        add form + import/export + the scrollable list. Chrome mirrors the
        olney / compare-card overlays. */
-    .bday-overlay {
+    .bday-overlay, .cal-overlay, .deck-overlay {
       position: fixed; inset: 0; z-index: 1000;
       display: flex; align-items: center; justify-content: center;
       padding: 1.25rem;
@@ -2000,8 +2174,11 @@
       opacity: 0; visibility: hidden; pointer-events: none;
       transition: opacity .25s var(--ease), visibility .25s var(--ease);
     }
-    .bday-overlay.open { opacity: 1; visibility: visible; pointer-events: auto; }
-    html:has(.bday-overlay.open) { overflow: hidden; }
+    .bday-overlay.open, .cal-overlay.open, .deck-overlay.open { opacity: 1; visibility: visible; pointer-events: auto; }
+    html:has(.bday-overlay.open), html:has(.cal-overlay.open), html:has(.deck-overlay.open) { overflow: hidden; }
+    /* The calendar + deck reuse .cal-modal (grid chip colours are scoped to it);
+       inside the overlay it stacks head + toggle + grid + note and scrolls. */
+    .cal-overlay .cal-modal, .deck-overlay .cal-modal { display: flex; flex-direction: column; max-height: 88vh; overflow: auto; }
     .bday-modal {
       width: 460px; max-width: 100%; max-height: 85vh;
       display: flex; flex-direction: column;
@@ -2035,9 +2212,10 @@
     .bday-io { margin-left: auto; display: flex; gap: .4rem; }
     /* "For: You / Partner" — only shown (via [hidden] toggled in JS) when the
        Finder is in two-person mode, so a saved birthday fills the right slot. */
-    .bday-target { display: flex; align-items: center; gap: .55rem; padding: .55rem 1rem .1rem; }
+    /* Player 1 / Player 2 segmented toggle — CENTRED above its panel (the old
+       "For" label is gone; the two player names carry the meaning alone). */
+    .bday-target { display: flex; align-items: center; justify-content: center; gap: .55rem; padding: .55rem 1rem .1rem; }
     .bday-target[hidden] { display: none; }
-    .bday-target-label { font-size: .62rem; letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); }
     .bday-seg { display: inline-flex; border: 1px solid var(--rule-strong); border-radius: 8px; overflow: hidden; }
     .bday-seg-btn {
       background: none; border: none; cursor: pointer;
@@ -2367,7 +2545,10 @@
        is selected. Click a glyph to drop its reading (‹ › / ← → / swipe). */
     .elements { padding: 1.6rem 1rem .15rem; }
     /* Tighten the gap from the suits row to the Finder (matched on I Ching). */
-    #elements + #finder { margin-block-start: var(--space-4); }
+    /* First section under the page title (the Finder since the Card Elements
+       row moved to the page foot 2026-07-06) gets the top breathing room the
+       old first row used to carry as padding. */
+    main > h1 + .page-section { margin-block-start: 1.6rem; }
     .el-inner { max-width: var(--max-w); margin: 0 auto; }
     /* Reading-voice toggle (Claude | Olney) — matches the I Ching hexagram
        Fu Xi / King Wen segmented pill (.hex-ref-toggle in iching.css): one

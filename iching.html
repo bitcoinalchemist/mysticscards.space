@@ -20,7 +20,7 @@
   <meta property="og:url" content="https://mysticscards.space/iching.html" />
   <meta property="og:image" content="https://mysticscards.space/assets/og-image.png" />
   <meta name="twitter:card" content="summary" />
-  <meta name="version" content="1.13" />
+  <meta name="version" content="1.15" />
   <link rel="canonical" href="https://mysticscards.space/iching.html" />
   <link rel="stylesheet" href="css/site.css" />
   <link rel="stylesheet" href="css/iching.css" />
@@ -32,31 +32,6 @@
 
 <main>
 <h1 class="vh">I Ching Oracle</h1>
-
-<!-- ── Trigrams (the eight building blocks) — top reference row, no heading ── -->
-<div class="page-content page-section" id="trigrams" style="max-width: var(--max-w); padding: 1.6rem 2rem .15rem">
-  <div class="tg-pop" id="tgPop">
-    <div class="gua-row" id="trigram-row" style="--yang: var(--gold); margin: 0; justify-content: center; align-items: center;"></div>
-    <div class="tg-detailwrap"><div class="tg-detailmin">
-      <div class="tg-detail" id="tgDetail" aria-live="polite">
-        <button class="tg-nav" id="tgPrev" type="button" aria-label="Previous trigram">‹</button>
-        <div class="tg-card">
-          <div class="tg-head">
-            <div class="tg-fig" id="tgFig"></div>
-            <div>
-              <div class="tg-name" id="tgName"></div>
-              <div class="tg-sub" id="tgSub"></div>
-            </div>
-          </div>
-          <p class="tg-line" id="tgLine"></p>
-          <dl class="tg-attrs" id="tgAttrs"></dl>
-          <p class="tg-para" id="tgPara"></p>
-        </div>
-        <button class="tg-nav" id="tgNext" type="button" aria-label="Next trigram">›</button>
-      </div>
-    </div></div>
-  </div>
-</div>
 
 <div class="page-content page-section" style="max-width: var(--max-w); padding: 0 2rem 0">
 
@@ -147,6 +122,34 @@
   </div><!-- /.section-bodywrap -->
 </section>
 
+<!-- ── Trigrams (the eight building blocks) — reference row, no heading.
+     Moved to the FOOT of the page 2026-07-06 (was the first thing in <main>) —
+     casting comes first now; the trigram-row IIFE in js/iching.js only needs
+     #trigram-row to exist by the time it runs. Markup/IDs untouched. ── -->
+<div class="page-content page-section" id="trigrams" style="max-width: var(--max-w); padding: 1.6rem 2rem .15rem">
+  <div class="tg-pop" id="tgPop">
+    <div class="gua-row" id="trigram-row" style="--yang: var(--gold); margin: 0; justify-content: center; align-items: center;"></div>
+    <div class="tg-detailwrap"><div class="tg-detailmin">
+      <div class="tg-detail" id="tgDetail" aria-live="polite">
+        <button class="tg-nav" id="tgPrev" type="button" aria-label="Previous trigram">‹</button>
+        <div class="tg-card">
+          <div class="tg-head">
+            <div class="tg-fig" id="tgFig"></div>
+            <div>
+              <div class="tg-name" id="tgName"></div>
+              <div class="tg-sub" id="tgSub"></div>
+            </div>
+          </div>
+          <p class="tg-line" id="tgLine"></p>
+          <dl class="tg-attrs" id="tgAttrs"></dl>
+          <p class="tg-para" id="tgPara"></p>
+        </div>
+        <button class="tg-nav" id="tgNext" type="button" aria-label="Next trigram">›</button>
+      </div>
+    </div></div>
+  </div>
+</div>
+
 <!-- ── Seed Oracle (placeholder — built out from the footer Seed Oracle mark) ──
      Hidden until it has content: shipping a visible section header that unfurls
      to nothing reads as broken. Restore the markup below (unchanged) when the
@@ -200,36 +203,6 @@
 <!-- ═══════════════════════════════════════════════════════
      JAVASCRIPT — render hexagrams
 ════════════════════════════════════════════════════════ -->
-
-
-<!-- ── Cast card popup ── -->
-
-<div class="ccard-overlay" id="ccardOverlay">
-  <div class="ccard-popup" id="ccardPopup">
-    <button class="ccard-close" type="button" aria-label="Close" title="Close" onclick="event.stopPropagation(); closeCompareCard()">✕</button>
-    <button class="ccard-nav ccard-nav-prev" type="button" aria-label="Previous card" title="Previous card" onclick="event.stopPropagation(); navigateCast(-1)">&#8249;</button>
-    <button class="ccard-nav ccard-nav-next" type="button" aria-label="Next card" title="Next card" onclick="event.stopPropagation(); navigateCast(1)">&#8250;</button>
-    <div class="ccard-solar" id="ccSolarWrap">
-      <span class="ccard-solar-value" id="ccSolar">—</span>
-    </div>
-    <div class="ccard-header">
-      <div class="spread-card" id="ccFace"></div>
-      <div class="ccard-info">
-        <div class="ccard-name"     id="ccName"></div>
-        <div class="ccard-subtitle" id="ccSubtitle"></div>
-        <div class="ccard-stat-value ccard-planets" id="ccPlanets"></div>
-        <div class="ccard-stat-value ccard-displace" id="ccDisplace"></div>
-        <div class="ccard-dates"    id="ccDates"></div>
-      </div>
-    </div>
-    <div class="ccard-body">
-      <div class="ccard-personality" id="ccPersonality"></div>
-    </div>
-    <div class="ccard-footer">
-      <div class="ic-line-type" id="icLineType"></div>
-    </div>
-  </div>
-</div>
 
 
 </main>

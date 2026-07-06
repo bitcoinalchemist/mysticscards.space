@@ -1065,16 +1065,33 @@ function openCompareCard(idx, ctx) {
       else                 dEl.innerHTML = `Replaces ${_ccCardToken(dI)} · Replaced by ${_ccCardToken(bI)}`;
     }
   }
-  // Body text: the period reading, or the card's own personality / teaser.
-  document.getElementById('ccPersonality').innerHTML = _periodText
-    ? `<p style="margin:0 0 .9em">${_periodText}</p>`
-    : (c.teaser || c.personality).split('\n\n').map(p => `<p style="margin:0 0 .9em">${p}</p>`).join('');
+  // Two mutually-exclusive body modes:
+  //  • In Time period popup (_periodText set): show the period reading prose,
+  //    and hide the Life Script.
+  //  • Plain card popup: drop the personality/teaser prose entirely and show
+  //    the Life Script instead.
+  const isPeriod = !!_periodText;
+  const ccBody = popup.querySelector('.ccard-body');
+  const ccPers = document.getElementById('ccPersonality');
+  if (ccPers) ccPers.innerHTML = isPeriod ? `<p style="margin:0 0 .9em">${_periodText}</p>` : '';
+  if (ccBody) ccBody.style.display = isPeriod ? '' : 'none';
+  // Life Script (moved here from the Finder result 2026-07-06). No-ops safely if
+  // the popup host is absent (e.g. iching.html's popup has no #ccLifeScript).
+  // Shown only for plain card popups — hidden in the In Time period popups.
+  const ccLsHost = document.getElementById('ccLifeScript');
+  const ccLsWrap = document.getElementById('ccLifeScriptWrap');
+  if (isPeriod) {
+    if (ccLsHost) ccLsHost.innerHTML = '';
+    if (ccLsWrap) ccLsWrap.style.display = 'none';
+  } else {
+    renderLifeScriptInto(c, ccLsHost, ccLsWrap, { showPlanetNames: true });
+  }
   document.getElementById('ccardOverlay').classList.add('open');
   // Stepping to the previous/next card: blink the content region over. The
   // popup shell (and its open flip) stays put — only header + body cross-fade.
   // .step-fade is guarded for reduced motion in site.css.
   if (_ccStepping) {
-    [popup.querySelector('.ccard-header'), popup.querySelector('.ccard-body')].forEach(function (el) {
+    [popup.querySelector('.ccard-header'), popup.querySelector('.ccard-body'), popup.querySelector('.ccard-life-script')].forEach(function (el) {
       if (!el) return;
       el.classList.remove('step-fade'); void el.offsetWidth; el.classList.add('step-fade');
     });
@@ -1140,9 +1157,17 @@ function buildSpreadGrid(gridEl, opts) {
   // The planet glyphs are plain labels — the planet readings live in the top
   // "Card Elements" row (#planetRow on the home page), not in this grid.
   let html = '';
-  html += '<div class="crown-row"><div></div><div></div>';
+  // The crown row's four leading/trailing spacer cells are repurposed on the
+  // Cards of Life page (buildSpreadGrid runs once, from ensureSpreadCtl): two
+  // host cells that each span two of the seven columns bookend the three crown
+  // seats. #crownJoker (left) gets a static Joker card; #crownControls (right)
+  // receives the relocated settings gear + age wheel. Both are filled/populated
+  // by js/cardsoflife.js after the grid is built; empty here.
+  html += '<div class="crown-row">';
+  html += '<div class="crown-side crown-joker" id="crownJoker"></div>';
   for (let i = 51; i >= 49; i--) html += `<div class="sl-seat" data-pos="${i}"></div>`;
-  html += '<div></div><div></div></div>';
+  html += '<div class="crown-side crown-controls" id="crownControls"></div>';
+  html += '</div>';
   for (let row = 0; row < 7; row++)
     for (let col = 6; col >= 0; col--)
       html += `<div class="sl-seat" data-pos="${row * 7 + col}"></div>`;

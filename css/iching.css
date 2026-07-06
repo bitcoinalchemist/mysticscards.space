@@ -245,9 +245,11 @@ button { cursor: pointer; border: none; background: none; font: inherit; }
       justify-content: center;
       flex-wrap: wrap;
     }
-    /* Tighten the gap from the top trigram row to Inquiry (matched on the
-       homepage suits → Finder). */
-    #trigrams + .page-section { margin-block-start: var(--space-4); }
+    /* First section under the page title (Inquiry since the trigram row moved
+       to the page foot 2026-07-06) gets the top breathing room the old first
+       row used to carry as padding. (The old `#trigrams + .page-section`
+       tightened-gap rule is retired — nothing follows #trigrams now.) */
+    main > h1 + .page-section { margin-block-start: 1.6rem; }
     /* Same glyph-zone height as the homepage suit row, so Inquiry sits the
        same distance below the trigrams as the Finder does below the suits. */
     #trigram-row { min-height: 3rem; }
@@ -556,83 +558,9 @@ button { cursor: pointer; border: none; background: none; font: inherit; }
       h1 { font-size: 1.6rem; }
     }
 
-    /* ── Cast card popup ── */
-    @keyframes cardFlip {
-      from { opacity: 0; transform: perspective(600px) rotateY(-75deg) scale(.97); }
-      to   { opacity: 1; transform: perspective(600px) rotateY(0deg)   scale(1);  }
-    }
-    @keyframes cardFlipOut {
-      from { opacity: 1; transform: perspective(600px) rotateY(0deg)   scale(1);  }
-      to   { opacity: 0; transform: perspective(600px) rotateY(75deg)  scale(.97); }
-    }
-    .ccard-popup.closing { animation: cardFlipOut .2s cubic-bezier(.55,0,.68,.07) forwards; }
-    .ccard-overlay {
-      display: none; position: fixed; inset: 0; z-index: 400;
-      background: rgba(22,16,41,.52);
-      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-      align-items: center; justify-content: center; padding: 1rem;
-    }
-    /* popup shell · suit bars · close button → shared in css/site.css */
-    .ccard-nav {
-      position: absolute; top: 50%; transform: translateY(-50%); z-index: 2;
-      width: 2rem; height: 3.5rem;
-      display: flex; align-items: center; justify-content: center;
-      color: var(--muted); font-size: 1rem;
-      /* Rest at .45 (matching the shared .hx-nav) so the arrows are visible on
-         touch, where there's no hover to reveal them. Hover/focus lifts to 1. */
-      opacity: .45; transition: opacity var(--ease), color var(--ease);
-      cursor: pointer; border-radius: var(--r-sm);
-    }
-    .ccard-nav-prev { left: .35rem; }
-    .ccard-nav-next { right: .35rem; }
-    .ccard-popup:hover .ccard-nav { opacity: 1; }
-    .ccard-nav:hover { color: var(--text); }
-    .ccard-nav:focus-visible { opacity: 1; color: var(--text); outline: 2px solid var(--gold); outline-offset: 2px; }
-    #ccFace {
-      width: 78px; height: 109px; flex-shrink: 0; cursor: default;
-      opacity: 1; transform: none;
-    }
-    #ccFace:hover { transform: none; box-shadow: none; }
-    .ccard-dates { font-size: .6rem; letter-spacing: .06em; color: var(--muted); margin-top: .3rem; }
-    .ccard-planets { font-size: .62rem; letter-spacing: .08em; color: var(--muted); margin-top: .25rem; }
-    .ccard-displace { font-size: .62rem; letter-spacing: .06em; color: var(--muted); margin-top: .15rem; }
-    .cc-dcard { font: inherit; font-weight: 600; letter-spacing: .08em; }
-    .cc-dcard.hearts, .cc-dcard.diamonds { color: var(--red); }
-    .cc-dcard.clubs  { color: var(--green); }
-    .cc-dcard.spades { color: var(--navy); }
-    .ccard-footer {
-      padding: 1rem 1.75rem;
-      background: var(--accent);
-      border-radius: 0 0 var(--r-lg) var(--r-lg);
-      display: flex; justify-content: center; align-items: center;
-    }
-    .ic-line-display { display: flex; align-items: center; gap: 8px; }
-    .ic-line-seg {
-      height: 7px; border-radius: 2px;
-      background: rgba(255,255,255,.8);
-      transition: background var(--ease);
-    }
-    .ic-line-seg.changing { background: var(--gold); }
-    .ic-yang-seg { width: 72px; }
-    .ic-yin-seg  { width: 32px; }
-    /* Clickable cast-line cards (they open the compare-card popup) get the same
-       gold border + lift + glow affordance as .hex-tile / .hex-ref-cell. Scoped
-       to .clickable so the pre-cast dashed slots stay inert. */
-    .spread-card.clickable {
-      cursor: pointer;
-      transition: transform var(--ease), box-shadow var(--ease), border-color var(--ease);
-    }
-    .spread-card.clickable:hover, .spread-card.clickable:focus-visible {
-      border-color: var(--gold); transform: translateY(-2px);
-      box-shadow: 0 0 0 1px var(--gold), 0 7px 18px rgba(0,0,0,.34);
-    }
-    .spread-card.clickable:active { transform: scale(.96); }
-    @media (prefers-reduced-motion: reduce) {
-      .spread-card.clickable { transition: box-shadow var(--ease), border-color var(--ease); }
-      .spread-card.clickable:hover,
-      .spread-card.clickable:focus-visible,
-      .spread-card.clickable:active { transform: none; }
-    }
+    /* (The cast-card popup's .ccard-* / .ic-line-* rules and the
+       .spread-card.clickable affordance were removed 2026-07-06 — the dealt
+       cards are display-only now; the hexagram popup keeps its own .hx-* CSS.) */
 
     /* ── Trigrams (the eight building blocks) ── */
     .tg-cell { cursor: pointer; border-radius: 10px; padding: 6px 8px; outline-offset: 3px;

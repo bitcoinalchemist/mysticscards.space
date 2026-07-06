@@ -490,14 +490,20 @@ function _buildBrowseGrid() {
 
   // One cell = its solar value above the card. SV = index + 1 (1–52);
   // the Joker (index 52) sits outside the count at 0.
+  const _SL = { hearts: '♥', diamonds: '♦', clubs: '♣', spades: '♠' };
   function cell(idx) {
     const c       = CARDS[idx];
     const sv      = idx === 52 ? 0 : idx + 1;
     const suitCls = idx === 52 ? 'joker' : c.suit;
     const jk      = idx === 52 ? ' is-joker' : '';
     const found   = idx === _svFoundIdx ? ' sv-found' : '';
+    // Calendar-style tile (rank + suit token on a small light chip) rather than
+    // a full playing-card face.
+    const tok = idx === 52
+      ? '<span class="cal-token cal-token-joker">JOKER</span>'
+      : `<span class="cal-token">${c.rank}${_SL[c.suit]}</span>`;
     return `<div class="browse-cell${jk}${found}" data-idx="${idx}"><span class="browse-sv">${sv}</span>`
-         + `<div class="spread-card ${suitCls}" title="${c.name}" onclick="openCompareCard(${idx})">${spreadCardPips(c)}</div></div>`;
+         + `<div class="cal-chip ${suitCls}" title="Load ${c.name}" onclick="deckPickCard(${idx})">${tok}</div></div>`;
   }
 
   if (_browseSuit) {
@@ -708,6 +714,10 @@ function toggleSecond() {
     toggleBtn.setAttribute('title', label);
     toggleBtn.setAttribute('aria-label', label);
   }
+  // Keep any OPEN picker tray's Player 1/Player 2 toggle in sync — adding or
+  // removing the partner while Calendar/Solar Values was open used to leave
+  // the tray with a missing (or orphaned) toggle until it was reopened.
+  _refreshTrayTargets();
   // When CLOSING the relationship while a triptych is on screen, capture
   // ALL THREE cards' rects BEFORE hiding #relResult so _flipRelExit can:
   //   • glide person 1 back to centre (the existing FLIP)
@@ -812,10 +822,7 @@ function _renderFinderCard(c, idx, opts) {
     c.challenges.map(s => `<div class="sc-item"><span class="sc-dot-c">●</span>${s}</div>`).join('');
   if (window.elementsHighlight) window.elementsHighlight(c.rank, c.suit);
   _finderExpand();   // also clears finderResult's .collapsed — "Open full profile" shows details expanded
-  renderLifeScriptInto(c,
-    document.getElementById('rLifeScript'),
-    document.getElementById('rLifeScriptWrap'),
-    { showPlanetNames: true });
+  // Life Script moved to the card compare-popup (openCompareCard) 2026-07-06.
   _showResultEntry(document.getElementById('finderResult'));
   if (opts.fromCard) {
     // Scroll the CARD ROW (not the whole panel) so the card itself lands
@@ -1406,17 +1413,39 @@ function _restoreQuadToggles() {
   const btn = document.getElementById('qSettingsBtn');
   const panel = document.getElementById('qSettingsPanel');
   if (!btn || !panel) return;
-  btn.addEventListener('click', () => {
-    const open = panel.classList.toggle('open');
-    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  // Float the settings menu at <body> level so it escapes the card grid's
+  // overflow clipping (the reason the original popover was unreachable and got
+  // turned into an inline accordion). Its position is set from the gear each
+  // time it opens, so it tracks the gear wherever it's been relocated.
+  document.body.appendChild(panel);
+  function positionPanel() {
+    const r = btn.getBoundingClientRect();
+    const w = panel.offsetWidth || 300;
+    const vw = document.documentElement.clientWidth;
+    let left = r.right - w;                            // right edge aligns to gear
+    left = Math.max(8, Math.min(left, vw - w - 8));    // keep fully on-screen
+    panel.style.left = (left + window.scrollX) + 'px';
+    panel.style.top  = (r.bottom + window.scrollY + 6) + 'px';
+  }
+  function openPanel()  { positionPanel(); panel.classList.add('open');    btn.setAttribute('aria-expanded', 'true'); }
+  function closePanel() { panel.classList.remove('open');                  btn.setAttribute('aria-expanded', 'false'); }
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    panel.classList.contains('open') ? closePanel() : openPanel();
+  });
+  // Click anywhere outside the menu (or the gear) closes it.
+  document.addEventListener('click', (e) => {
+    if (!panel.classList.contains('open')) return;
+    if (panel.contains(e.target) || btn.contains(e.target)) return;
+    closePanel();
   });
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape' || !panel.classList.contains('open')) return;
     const t = e.target;
     if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
-    panel.classList.remove('open');
-    btn.setAttribute('aria-expanded', 'false');
+    closePanel();
   });
+  window.addEventListener('resize', () => { if (panel.classList.contains('open')) positionPanel(); });
 })();
 
 // ── Personal Cards: Birth / Yearly / 52-day / Daily ──────────────
@@ -1881,13 +1910,26 @@ function renderBirthPanel() {
 // dropdown). openBirthPanel / closeBirthPanel keep their names — callers
 // (loadBirth, saveManualBirth, openBirthAddPanel) are unchanged.
 let _bdayReturnFocus = null;
-// Point the picker at a slot and reflect it on the For toggle.
+// Default the picker to the first EMPTY slot (self, else partner, else self).
+// Uses _resolveIdx so a slot filled by a direct card pick (not just a date)
+// counts as set.
+function _defaultTarget() {
+  const selfSet = _resolveIdx(1) >= 0;
+  const partnerSet = _resolveIdx(2) >= 0;
+  return !selfSet ? 'self' : (!partnerSet ? 'partner' : 'self');
+}
+// Point the picker at a slot and reflect it on ALL three For toggles (the
+// saved-birthday overlay, the calendar, and the deck), so "which person to
+// fill" is one source of truth across the pickers.
 function _setBdayTarget(t) {
   _bdayTarget = (t === 'partner') ? 'partner' : 'self';
-  const self = document.getElementById('bdayTargetSelf');
-  const partner = document.getElementById('bdayTargetPartner');
-  if (self) self.classList.toggle('is-active', _bdayTarget === 'self');
-  if (partner) partner.classList.toggle('is-active', _bdayTarget === 'partner');
+  [['bdayTargetSelf', 'bdayTargetPartner'],
+   ['calTargetSelf', 'calTargetPartner'],
+   ['deckTargetSelf', 'deckTargetPartner']].forEach(function (pair) {
+    const s = document.getElementById(pair[0]), p = document.getElementById(pair[1]);
+    if (s) s.classList.toggle('is-active', _bdayTarget === 'self');
+    if (p) p.classList.toggle('is-active', _bdayTarget === 'partner');
+  });
 }
 function openBirthPanel() {
   const ov = document.getElementById('bdayOverlay');
@@ -1898,9 +1940,7 @@ function openBirthPanel() {
   const tgt = document.getElementById('bdayTarget');
   if (typeof secondVisible !== 'undefined' && secondVisible) {
     if (tgt) tgt.hidden = false;
-    const selfSet = document.getElementById('fMonth').value && document.getElementById('fDay').value;
-    const partnerSet = document.getElementById('relMonth2').value && document.getElementById('relDay2').value;
-    _setBdayTarget(!selfSet ? 'self' : (!partnerSet ? 'partner' : 'self'));
+    _setBdayTarget(_defaultTarget());
   } else {
     if (tgt) tgt.hidden = true;
     _setBdayTarget('self');
@@ -2086,22 +2126,34 @@ document.getElementById('bdayOverlay').addEventListener('click', e => {
   if (e.target === e.currentTarget) closeBirthPanel();
 });
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && document.getElementById('bdayOverlay').classList.contains('open')) {
-    closeBirthPanel();
-  }
+  if (e.key !== 'Escape') return;
+  if (document.getElementById('bdayOverlay').classList.contains('open')) closeBirthPanel();
+  ['cal', 'deck', 'astro', 'sync'].forEach(k => {
+    const t = document.getElementById(k + 'Tray');
+    if (t && t.classList.contains('open')) _closeTray(k);
+  });
 });
 document.getElementById('bdayExportBtn').addEventListener('click', exportBirths);
 document.getElementById('bdayImportBtn').addEventListener('click', () =>
   document.getElementById('bdayImportFile').click());
 document.getElementById('bdayImportFile').addEventListener('change', importBirthsFromFile);
-// The Finder's divider picker opens the same overlay; in two-person mode the
-// For toggle (set in openBirthPanel) decides which slot a pick fills.
+// The Finder's divider picker opens the saved-birthday overlay; in two-person
+// mode the For toggle decides which slot a pick fills.
 const _finderPickBtn = document.getElementById('finderPickBtn');
 if (_finderPickBtn) _finderPickBtn.addEventListener('click', () => {
   _bdayReturnFocus = _finderPickBtn;
   openBirthPanel();
 });
-['bdayTargetSelf', 'bdayTargetPartner'].forEach(id => {
+// Finder tool-tray tabs — each toggles its inline tray (accordion, one open at
+// a time). Deck + Calendar are pickers; Astro + Synchronicities are panels.
+[['finderDeckBtn', 'deck'], ['finderCalBtn', 'cal'],
+ ['finderAstroBtn', 'astro'], ['finderSyncBtn', 'sync']].forEach(pair => {
+  const b = document.getElementById(pair[0]);
+  if (b) b.addEventListener('click', () => _toggleTray(pair[1]));
+});
+// All three For toggles (birthday / calendar / deck) drive the shared target.
+['bdayTargetSelf', 'bdayTargetPartner', 'calTargetSelf', 'calTargetPartner',
+ 'deckTargetSelf', 'deckTargetPartner'].forEach(id => {
   const b = document.getElementById(id);
   if (b) b.addEventListener('click', () => _setBdayTarget(b.dataset.target));
 });
@@ -2117,16 +2169,60 @@ document.getElementById('ageInput').addEventListener('keydown', function(e) {
 });
 
 buildAnnualGrid(1); // render Life Spread on load
+
+// Populate the crown-row bookend cells now that #annualGrid is rendered:
+//   • #crownJoker — a static, decorative Joker card (index 52), clickable to
+//     open its popup. The Joker has no positional seat, so no FLIP/ghosts.
+//   • #crownControls — receives the relocated age control + settings gear
+//     (authored up in .spreads-top so they exist before the grid builds; the
+//     settings PANEL stays put as a full-width accordion). buildSpreadGrid runs
+//     once, so these hosts are stable.
+(function initCrownBookends() {
+  const cj = document.getElementById('crownJoker');
+  if (cj && typeof spreadCardPips === 'function' && CARDS[52]) {
+    cj.innerHTML = '<div class="spread-card joker" title="The Joker" role="button" tabindex="0" aria-label="The Joker" onclick="openCompareCard(52)">' + spreadCardPips(CARDS[52]) + '</div>';
+    const card = cj.firstElementChild;
+    if (card) card.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCompareCard(52); }
+    });
+  }
+  const host   = document.getElementById('crownControls');
+  const ageSel = document.querySelector('#spreads .age-selector');
+  const gear   = document.getElementById('qSettingsBtn');
+  if (host && ageSel) host.appendChild(ageSel);
+  // Keep the gear IN the age-selector row (not floating in the cell corner) so
+  // the two read as one control group and scale together — fewer alignment
+  // issues as the cell narrows.
+  if (ageSel && gear)  ageSel.appendChild(gear);
+})();
 _restoreQuadToggles(); // restore Alt Courts / Show Displacements preferences
 renderPersonalCards();
 
 let _ccardIdx = -1;
 
 
-// "Load" — highlight the card in the Quadration grid only (the shine + the
-// age-0 life-script bounce), without rendering the full finder profile and
-// without scrolling (the popup opens over the spread, so the highlight lands
-// in place). Joker has no seat → no pick.
+// Run cb once the card popup has finished closing (its #ccardOverlay.open class,
+// which drives the page scroll-lock, is gone). Polls on setTimeout — NOT
+// requestAnimationFrame, which is paused in a hidden/blurred tab and would wedge
+// the callback if the user clicked Load then switched away — with a ~900ms cap so
+// a missed animationend can never strand it. If the overlay is already closed,
+// cb runs on the next tick.
+function _whenPopupClosed(cb) {
+  const ov = document.getElementById('ccardOverlay');
+  const start = (window.performance && performance.now()) || Date.now();
+  (function poll() {
+    const now = (window.performance && performance.now()) || Date.now();
+    if (!ov || !ov.classList.contains('open') || now - start > 900) { cb(); return; }
+    setTimeout(poll, 32);
+  })();
+}
+
+// "Load in Quadrations" — highlight the card in the Quadration grid (the pick
+// ring + the age-0 life-script riffle) without rendering the full finder profile,
+// then scroll the Quadrations section into view so the one-shot flip plays where
+// the user can see it (the popup opens over the whole viewport, so a user who
+// opened it from elsewhere would otherwise land back where they were and miss it).
+// Joker has no seat → no pick, no scroll.
 // IMPORTANT: do NOT call buildAnnualGrid here. That would re-deck to the current
 // annual age (snapping Spirit/Life mode back to the Life spread, dropping the
 // fixed rings) and re-toggle .ls-lifespread, firing the riffle anywhere age 0
@@ -2141,7 +2237,34 @@ function loadCardPick() {
   _finderPick = c.suit === 'joker' ? null : { rank: c.rank, suit: c.suit };
   const ctl = ensureSpreadCtl();
   ctl.setPick(_finderPick ? _finderPick.rank : null, _finderPick ? _finderPick.suit : null);
-  ctl.setScript(_finderPick ? _finderPick.rank : null, _finderPick ? _finderPick.suit : null);
+  const fireScript = () => ctl.setScript(_finderPick ? _finderPick.rank : null, _finderPick ? _finderPick.suit : null);
+  // Scroll to the Quadrations spread so the one-shot life-script flip actually
+  // plays IN VIEW. Previously the pick landed in place and a user scrolled away
+  // (the popup opens over the whole viewport) missed the animation entirely.
+  // Open the section first if they'd collapsed it, then delay setScript until
+  // the scroll (and any unfurl) is under way so the riffle starts on screen.
+  // Joker (no seat) just clears in place — nothing to fly to.
+  const sec = document.getElementById('spreads');
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (sec && _finderPick) {
+    const needsOpen = !sec.classList.contains('section-open');
+    if (needsOpen) toggleSection('spreads');
+    // Scroll AND fire the flip together, but only once the card popup has finished
+    // closing. The popup holds the page scroll-lock (#ccardOverlay.open →
+    // html{overflow:hidden}) for ~320ms while it animates out, so a scrollIntoView
+    // fired before then is a silent no-op — the whole scroller is frozen. Wait
+    // for the overlay to drop .open, then (if the section had to unfurl) give the
+    // grid-rows transition a beat so we scroll against the final layout, not the
+    // collapsed one (scrolling mid-unfurl strands you as the page grows). Firing
+    // setScript at scroll-start puts the 2.5s riffle on screen as it plays.
+    const run = () => {
+      sec.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+      fireScript();
+    };
+    _whenPopupClosed(() => { needsOpen ? setTimeout(run, 260) : run(); });
+  } else {
+    fireScript();
+  }
 }
 
 // Reload chip — after the user has navigated away from their finder
@@ -2264,7 +2387,7 @@ function buildCalendar() {
       const chip = c.suit === 'joker'
         ? `<div class="cal-chip joker"><span class="cal-token cal-token-joker">JOKER</span></div>`
         : `<div class="cal-chip ${c.suit}"><span class="cal-token">${c.rank}${SUIT_LETTER[c.suit]}</span></div>`;
-      html += `<div class="cal-day${alt}${isLeap ? ' cal-leap' : ''}${isToday ? ' cal-today' : ''}" onclick="openModalFromCalendar(${cardIdx})" title="${c.name}${isToday ? ' · today' : ''}${isLeap ? ' (leap year)' : ''}">`;
+      html += `<div class="cal-day${alt}${isLeap ? ' cal-leap' : ''}${isToday ? ' cal-today' : ''}" onclick="calPickDate(${m}, ${d})" title="Load ${c.name}${isToday ? ' · today' : ''}${isLeap ? ' (leap year)' : ''}">`;
       html += chip;
       html += `</div>`;
     }
@@ -2273,8 +2396,94 @@ function buildCalendar() {
   document.getElementById('calGrid').innerHTML = html;
 }
 
-function openModalFromCalendar(idx) {
-  openCompareCard(idx);
+// ── Finder tool trays (inline, accordion) ─────────────────────────
+// The pickers row is a tab strip; each tab toggles an inline tray under the
+// finder box, one open at a time. Deck + Calendar are PICKERS (they load into
+// the finder via the shared For toggle and STAY OPEN so you can keep exploring);
+// Astro + Synchronicities are display panels moved up from the retired Tools
+// section. Content is built/initialised lazily on first open.
+const _FINDER_TRAYS = { cal: 'finderCalBtn', deck: 'finderDeckBtn', astro: 'finderAstroBtn', sync: 'finderSyncBtn' };
+function _trayBtn(key) { return document.getElementById(_FINDER_TRAYS[key]); }
+function _closeTray(key) {
+  const t = document.getElementById(key + 'Tray'); if (t) t.classList.remove('open');
+  const b = _trayBtn(key); if (b) { b.classList.remove('is-active'); b.setAttribute('aria-expanded', 'false'); }
+}
+function _closeOtherTrays(except) {
+  Object.keys(_FINDER_TRAYS).forEach(function (k) { if (k !== except) _closeTray(k); });
+}
+function _openTray(key) {
+  _closeOtherTrays(key);
+  if (key === 'cal') buildCalendar();
+  else if (key === 'deck') _buildBrowseGrid();
+  else if (key === 'astro') _initAstroPanel();
+  // Deck + Calendar are pickers: show the For toggle in two-person mode.
+  if (key === 'cal' || key === 'deck') {
+    const tgt = document.getElementById(key + 'Target');
+    if (typeof secondVisible !== 'undefined' && secondVisible) {
+      if (tgt) tgt.hidden = false;
+      _setBdayTarget(_defaultTarget());
+    } else {
+      if (tgt) tgt.hidden = true;
+      _setBdayTarget('self');
+    }
+  }
+  const t = document.getElementById(key + 'Tray'); if (t) t.classList.add('open');
+  const b = _trayBtn(key); if (b) { b.classList.add('is-active'); b.setAttribute('aria-expanded', 'true'); }
+}
+function _toggleTray(key) {
+  const t = document.getElementById(key + 'Tray'); if (!t) return;
+  t.classList.contains('open') ? _closeTray(key) : _openTray(key);
+}
+// Show/hide the Player 1/Player 2 toggle in any OPEN picker tray to match
+// two-person mode. Called by toggleSecond so the toggle appears/disappears
+// live while a tray is open (it used to be set only in _openTray, so adding
+// a partner mid-tray gave no way to aim the pick without reopening).
+function _refreshTrayTargets() {
+  ['cal', 'deck'].forEach(function (k) {
+    const tray = document.getElementById(k + 'Tray');
+    const tgt = document.getElementById(k + 'Target');
+    if (!tray || !tgt || !tray.classList.contains('open')) return;
+    tgt.hidden = !secondVisible;
+  });
+  // Re-aim at the first empty slot (or Player 1 when solo) — same rule as
+  // _openTray, so a pick right after adding the partner lands sensibly.
+  _setBdayTarget(secondVisible ? _defaultTarget() : 'self');
+}
+// A calendar date carries no year, so this sets day + month only (age stays as
+// it is) — the same shape as picking on the wheels. Self → fDay/fMonth; partner
+// → relDay2/relMonth2 (opening the partner slot if needed).
+function loadFinderDate(m, d, target) {
+  target = target || 'self';
+  if (target === 'partner') {
+    if (!secondVisible) toggleSecond();
+    const M = document.getElementById('relMonth2'), D = document.getElementById('relDay2');
+    M.value = String(m); M.dispatchEvent(new Event('change'));
+    D.value = String(d); D.dispatchEvent(new Event('change'));
+    return;
+  }
+  _suppressAutoExpand = true;
+  const M = document.getElementById('fMonth'), D = document.getElementById('fDay');
+  M.value = String(m); M.dispatchEvent(new Event('change'));
+  D.value = String(d); D.dispatchEvent(new Event('change'));
+  _suppressAutoExpand = false;
+}
+function calPickDate(m, d) {
+  loadFinderDate(m, d, _bdayTarget);
+  // Inline tray stays open — the result updates below; keep exploring.
+}
+
+// The Full Deck — clicking a card loads it into the finder as a DIRECT pick
+// (sets _cpOverride, like the retired Rank/Suit dropdowns — no wheel/date
+// change), respecting the For toggle. The inline tray STAYS OPEN so you can
+// keep browsing while the result updates below.
+function deckPickCard(idx) {
+  if (_bdayTarget === 'partner') {
+    _cpOverride2 = idx;
+    if (!secondVisible) toggleSecond();
+  } else {
+    _cpOverride1 = idx;
+  }
+  maybeFindUnified();
 }
 
 // ── Inline tool panels (expand in place rather than open a modal) ──
@@ -2282,9 +2491,7 @@ function openModalFromCalendar(idx) {
 var _toolBuilt = {};
 function _buildToolPanel(key) {
   if (_toolBuilt[key]) return;
-  if (key === 'browse')   _buildBrowseGrid();
-  else if (key === 'cal')  buildCalendar();
-  else if (key === 'astro') _initAstroPanel();
+  if (key === 'astro') _initAstroPanel();
   _toolBuilt[key] = true;
 }
 function _syncToolPanelFromFinder(key) {

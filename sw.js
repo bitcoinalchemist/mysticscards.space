@@ -3,7 +3,7 @@
  * Network-first for same-origin; cache-first for Google Fonts.
  * Auto-generated precache list — regenerate when files are added/removed.
  */
-const CACHE = 'mysticscards-v2-27';
+const CACHE = 'mysticscards-v2-35';
 const PRECACHE = [
   './',
   'index.html',
