@@ -1038,9 +1038,17 @@ function openCompareCard(idx, ctx) {
   document.getElementById('ccName').textContent     = c.name;
   document.getElementById('ccSubtitle').textContent =
     SUBTITLES[`${c.rank}_${c.suit}`] || (c.suit.charAt(0).toUpperCase() + c.suit.slice(1) + ' · ' + c.rank);
-  // Dates line beneath subtitle
+  // Dates beneath subtitle. Rendered as individual cells in a fixed 3-column
+  // grid (see .ccard-dates in cardsoflife.css) rather than a comma-run of text,
+  // so the number of ROWS is deterministic per card (max 6 dates → 2 rows) and
+  // NEVER depends on the device's text width — a browser tab and the installed
+  // desktop webapp (which renders small text at a different size) lay out
+  // identically.
   const ccDates = document.getElementById('ccDates');
-  if (ccDates) ccDates.textContent = c.dates || '';
+  if (ccDates) {
+    const parts = (c.dates || '').split(',').map(s => s.trim()).filter(Boolean);
+    ccDates.innerHTML = parts.map(d => `<span class="cc-date">${d}</span>`).join('');
+  }
   // A period reading (e.g. the Daily card under today's planet) when a
   // {period,planet} context is supplied and a matching entry exists; null
   // otherwise, in which case the popup behaves exactly as before.

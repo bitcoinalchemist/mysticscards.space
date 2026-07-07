@@ -1162,8 +1162,8 @@
        lands in the same place, fully visible without scrolling — the box height
        here just gives that reserved layout room to breathe. In Time period
        popups keep their own taller size + scrolling body. */
-    .ccard-popup { height: 450px; }
-    .ccard-popup.cc-period { height: 480px; }
+    .ccard-popup { height: 476px; }
+    .ccard-popup.cc-period { height: 500px; }
     /* Installed PWA (standalone / WCO / etc.): a browser or OS minimum-font-size
        enlarges the small header text (dates, subtitle, planets, displacement),
        so the SAME card needs more height than in a normal browser tab — a fixed
@@ -1173,7 +1173,7 @@
        header difference and scrolls the Joker's note, so all popups match. */
     @media (display-mode: standalone), (display-mode: window-controls-overlay),
            (display-mode: minimal-ui), (display-mode: fullscreen) {
-      .ccard-popup, .ccard-popup.cc-period { height: 535px; }
+      .ccard-popup, .ccard-popup.cc-period { height: 560px; }
     }
     .ccard-life-script h4 {
       font-size: .6rem; font-weight: 600; letter-spacing: .14em;
@@ -1777,18 +1777,38 @@
       width: 78px; height: 109px; flex-shrink: 0; cursor: default;
     }
     #ccFace:hover { transform: none; box-shadow: none; }
+    /* Dates render as a fixed 3-column grid, one date per cell. With at most 6
+       dates on any card that is at most TWO rows, and the row count depends only
+       on how many dates the card has — never on the rendered text width. That is
+       what makes it identical across a browser tab and the installed desktop
+       webapp (which enforce different small-text sizes): the same card always
+       lays out to the same number of rows everywhere. A constant 2-row min-height
+       (expressed in em, so it scales WITH the text size) keeps every card's
+       header the same height, so the Life Script below never shifts. */
     .ccard-dates {
       font-size: .6rem; letter-spacing: .06em; color: var(--muted);
-      margin-top: .3rem;
-      line-height: 1.5;
-      /* Reserve a constant height for the worst-case (2-line) dates value so a
-         card with many birthdays (e.g. King of Hearts, 6 dates) keeps the SAME
-         header height as a single-date card (e.g. Ace of Hearts). The Life
-         Script below then always lands in the same place and is never pushed
-         down or scrolled. em here is relative to this element's .6rem, so 3em =
-         two lines at line-height 1.5. */
-      min-height: 3em;
+      margin-top: .35rem;
+      display: grid;
+      grid-template-columns: repeat(4, auto);
+      justify-content: start;
+      align-content: start;
+      column-gap: .55rem; row-gap: .2rem;
+      line-height: 1.4;
+      /* FIXED three-row block — a hard height, not a floor. The date map
+         (solarValue in cardsoflife.js) gives each card 1–12 dates; 12 is the
+         true maximum, which in 4 columns is exactly 3 rows. So this one box
+         holds EVERY card — a 1-date card and a 12-date card occupy the identical
+         space — and the Life Script below NEVER moves. Row count is driven only
+         by how many dates a card has (never by rendered text width), so a
+         browser tab and the installed desktop webapp lay out the same. Height is
+         in rem (root-relative → consistent across devices); overflow:hidden +
+         align-content:start pin the rows to the top. Nothing is clipped: 12
+         dates fill the three rows exactly. Row height .84rem = 1.4 × .6rem. */
+      height: calc(3 * .84rem + 2 * .2rem);
+      overflow: hidden;
+      box-sizing: content-box;
     }
+    .cc-date { white-space: nowrap; }
     /* Planet + displacement lines inside the header info block */
     .ccard-planets { font-size: .62rem; letter-spacing: .08em; color: var(--muted); margin-top: .25rem; }
     .ccard-displace { font-size: .62rem; letter-spacing: .06em; color: var(--muted); margin-top: .15rem; }
