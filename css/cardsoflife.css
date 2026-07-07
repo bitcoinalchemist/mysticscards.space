@@ -1118,10 +1118,14 @@
       font-family: var(--serif); font-style: italic;
       font-size: .9rem; line-height: 1.7;
       color: var(--text-secondary);
-      padding: .75rem 1rem;
-      background: var(--gold-light);
-      border-radius: var(--r-sm);
+      /* Sits directly on the popup ground — no fill/rounding. The horizontal
+         inset comes from the wrapper (.ccard-life-script padding), so the note
+         aligns with the rest of the popup text. */
+      padding: 0;
+      text-align: center;
     }
+    /* Joker popup drops the "Life Script" heading (the note isn't a life script). */
+    .ccard-life-script.ls-is-joker h4 { display: none; }
 
     @media (max-width: 700px) {
       .ls-grid { gap: .3rem; }
@@ -1150,17 +1154,16 @@
          whose border-bottom already separates it (the body between them is
          hidden). */
     }
-    /* Standard card popups target ONE height (430px) so a card whose dates line
+    /* Standard card popups target ONE height (450px) so a card whose dates line
        wraps to a second row doesn't make a taller box than a single-row one, and
-       the Joker (long note, scrolled) matches too. It's a FLOOR (min-height), not
-       a fixed height, so a smaller window than a maximised browser — e.g. an
-       installed-app window, or one where a browser/OS minimum-font-size enlarges
-       the labels — lets the box GROW to show the full Life Script instead of
-       clipping it (up to the 88vh cap from site.css). Normal windows still settle
-       at 430px, so the uniform look is preserved. In Time period popups keep
-       their own taller floor + scrolling body. */
-    .ccard-popup { height: 430px; }
-    .ccard-popup.cc-period { height: 460px; }
+       the Joker (long note, scrolled) matches too. The dates line itself now
+       reserves a constant 2-line height (see .ccard-dates min-height below), so
+       the header is the same height on every card and the Life Script always
+       lands in the same place, fully visible without scrolling — the box height
+       here just gives that reserved layout room to breathe. In Time period
+       popups keep their own taller size + scrolling body. */
+    .ccard-popup { height: 450px; }
+    .ccard-popup.cc-period { height: 480px; }
     /* Installed PWA (standalone / WCO / etc.): a browser or OS minimum-font-size
        enlarges the small header text (dates, subtitle, planets, displacement),
        so the SAME card needs more height than in a normal browser tab — a fixed
@@ -1170,7 +1173,7 @@
        header difference and scrolls the Joker's note, so all popups match. */
     @media (display-mode: standalone), (display-mode: window-controls-overlay),
            (display-mode: minimal-ui), (display-mode: fullscreen) {
-      .ccard-popup, .ccard-popup.cc-period { height: 515px; }
+      .ccard-popup, .ccard-popup.cc-period { height: 535px; }
     }
     .ccard-life-script h4 {
       font-size: .6rem; font-weight: 600; letter-spacing: .14em;
@@ -1339,6 +1342,31 @@
       font-size: 1em; min-width: 0; padding: 0 2px; border-radius: var(--r-sm);
     }
     #crownControls .q-mode-current { font-size: clamp(.5rem, 9cqw, .62rem); }
+
+    /* ── Reading direction (settings: "Read left to right") ──────────
+       The spread is authored right-to-left (seat DOM order runs col 6→0, so
+       position 0 — the first card read — sits at the RIGHT of each row).
+       Toggling .q-ltr on #annualGrid mirrors the whole board with grid
+       `direction: rtl`: auto-placement now flows right→left, so the same DOM
+       order lands position 0 at the LEFT. The planet column labels are
+       emitted in the same 6→0 order, so they mirror with (and stay under)
+       their columns for free. Seats/labels get `direction: ltr` back so the
+       cards' own text and the ghost-chip row lay out normally — only the
+       grid PLACEMENT mirrors. */
+    .spread-grid.q-ltr { direction: rtl; }
+    .spread-grid.q-ltr .sl-seat,
+    .spread-grid.q-ltr .planet-col-label { direction: ltr; }
+    /* Crown row: the three crown seats mirror with the board (49·50·51 now
+       reads left→right), but the two bookend host cells are chrome, not part
+       of the reading — the Joker stays LEFT and the gear + age wheel stay
+       RIGHT. The row resets to ltr and `order` re-sequences its auto-placed
+       children (DOM order is joker, 51, 50, 49, controls). */
+    .spread-grid.q-ltr .crown-row { direction: ltr; }
+    .spread-grid.q-ltr .crown-row .crown-joker { order: 0; }
+    .spread-grid.q-ltr .crown-row .sl-seat[data-pos="49"] { order: 1; }
+    .spread-grid.q-ltr .crown-row .sl-seat[data-pos="50"] { order: 2; }
+    .spread-grid.q-ltr .crown-row .sl-seat[data-pos="51"] { order: 3; }
+    .spread-grid.q-ltr .crown-row .crown-controls { order: 4; }
 
     /* Spread grid */
     .spread-wrap { overflow-x: auto; padding: 1rem 0; -webkit-overflow-scrolling: touch; flex: 1; min-width: 0; display: flex; justify-content: center; }
@@ -1752,6 +1780,14 @@
     .ccard-dates {
       font-size: .6rem; letter-spacing: .06em; color: var(--muted);
       margin-top: .3rem;
+      line-height: 1.5;
+      /* Reserve a constant height for the worst-case (2-line) dates value so a
+         card with many birthdays (e.g. King of Hearts, 6 dates) keeps the SAME
+         header height as a single-date card (e.g. Ace of Hearts). The Life
+         Script below then always lands in the same place and is never pushed
+         down or scrolled. em here is relative to this element's .6rem, so 3em =
+         two lines at line-height 1.5. */
+      min-height: 3em;
     }
     /* Planet + displacement lines inside the header info block */
     .ccard-planets { font-size: .62rem; letter-spacing: .08em; color: var(--muted); margin-top: .25rem; }

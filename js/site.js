@@ -221,19 +221,40 @@
   else _restoreSections();
 
   // ── Backup: export / import the site's saved data ─────────────────
-  // One backup file covers every store (saved charts + saved readings),
-  // whichever page it is exported from. Import MERGES by entry id, so
-  // restoring an old file never deletes newer saves.
-  var BACKUP_KEYS = ['astro_births_v1', 'iching_readings'];
+  // One backup file covers every saved store — readings, birthdays, game
+  // prefs/bests, Seed Oracle progress — whichever page it is exported from.
+  // Import never deletes newer saves: entry lists (arrays of {id} items)
+  // MERGE by id, skipping ids already present; scalar/object stores restore
+  // only when the key is absent locally. (Format v2, 2026-07-07: grew from
+  // just iching_readings — plus the v1-era astro_births_v1, dropped since
+  // nothing in v2 writes it — to the full store list. v1 backup files still
+  // import fine: same envelope, subset of keys. mc-section-* collapse
+  // states are cosmetic per-device state and stay out on purpose.)
+  var BACKUP_KEYS = [
+    'iching_readings',        // saved I Ching readings (array of {id} entries)
+    'cardsoflife_births',     // saved birthdays        (array of {id} entries)
+    'cardsoflife_voice',      // Card Elements Claude|Olney toggle
+    'cardsoflife_altCourts',  // Quadrations settings…
+    'cardsoflife_showDisp',
+    'cardsoflife_quadMode',
+    'cardsoflife_quadScale',
+    'cardsoflife_quadLtr',
+    'ckeys-prefs',            // Celestial Keys speed/keys/layout choices
+    'ckeys-bests',            // Celestial Keys best scores
+    'ouroboros-best',         // Ouroboros high score
+    'seedoracle_unlock',      // Seed Oracle journey progress
+  ];
 
   window.MCBackup = {
     export: function () {
-      var out = { site: 'mysticscards.space', version: 1, exported: new Date().toISOString(), data: {} };
+      var out = { site: 'mysticscards.space', version: 2, exported: new Date().toISOString(), data: {} };
       BACKUP_KEYS.forEach(function (k) {
-        try {
-          var v = JSON.parse(localStorage.getItem(k));
-          if (v) out.data[k] = v;
-        } catch (e) {}
+        var raw = localStorage.getItem(k);
+        if (raw == null) return;
+        // JSON stores export parsed (readable file; import merges arrays);
+        // plain-string stores (e.g. cardsoflife_voice) export raw.
+        try { out.data[k] = JSON.parse(raw); }
+        catch (e) { out.data[k] = raw; }
       });
       var stamp = out.exported.slice(0, 10).replace(/-/g, '');
       var a = document.createElement('a');
@@ -256,15 +277,25 @@
           if (!data) { done(-1); return; }
           BACKUP_KEYS.forEach(function (k) {
             var incoming = data[k];
-            if (!Array.isArray(incoming)) return;
-            var current = [];
-            try { current = JSON.parse(localStorage.getItem(k)) || []; } catch (e) {}
-            var have = {};
-            current.forEach(function (x) { have[x.id] = true; });
-            incoming.forEach(function (x) {
-              if (x && x.id != null && !have[x.id]) { current.push(x); added++; }
-            });
-            try { localStorage.setItem(k, JSON.stringify(current)); } catch (e) {}
+            if (incoming == null) return;
+            if (Array.isArray(incoming)) {
+              // Entry list (readings, birthdays): merge by id, keep local.
+              var current = [];
+              try { current = JSON.parse(localStorage.getItem(k)) || []; } catch (e) {}
+              var have = {};
+              current.forEach(function (x) { have[x.id] = true; });
+              incoming.forEach(function (x) {
+                if (x && x.id != null && !have[x.id]) { current.push(x); added++; }
+              });
+              try { localStorage.setItem(k, JSON.stringify(current)); } catch (e) {}
+            } else if (localStorage.getItem(k) == null) {
+              // Scalar/object store (prefs, scores, progress): restore only
+              // onto a fresh device — never clobber a value already set here.
+              // Strings were exported raw, so they go back raw; everything
+              // else round-trips through stringify.
+              var val = (typeof incoming === 'string') ? incoming : JSON.stringify(incoming);
+              try { localStorage.setItem(k, val); added++; } catch (e) {}
+            }
           });
           done(added);
         } catch (e) { done(-1); }

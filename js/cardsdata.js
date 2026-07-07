@@ -803,7 +803,8 @@ const PIP_LAYOUTS = {
   '10': [[25,8,0],[75,8,0],[50,22,0],[25,36,0],[75,36,0],[25,64,1],[75,64,1],[50,78,1],[25,92,1],[75,92,1]],
   // Court "pips-only" layouts (J=11, Q=12, K=13) — rendered into each court but
   // shown only when body.pips-only is active (the alternate-courts toggle).
-  // See dev/pips-only-courts/SPEC.md. The King's centre column extends past the
+  // See pips-only-courts/SPEC.md in the v1 parent folder's dev/ (not in this
+  // repo). The King's centre column extends past the
   // pip box (y -5…105) so its five pips don't overlap; they still land in-card.
   'J':  [[25,8,0],[75,8,0],[50,22,0],[25,36,0],[75,36,0],[50,50,0],[25,64,1],[75,64,1],[50,78,1],[25,92,1],[75,92,1]],
   'Q':  [[25,8,0],[50,8,0],[75,8,0],[25,36,0],[50,36,0],[75,36,0],[25,64,1],[50,64,1],[75,64,1],[25,92,1],[50,92,1],[75,92,1]],
@@ -883,8 +884,12 @@ function spreadCardPips(c) {
 function renderLifeScriptInto(c, host, wrap, opts) {
   if (!host) return;
   opts = opts || {};
+  // Joker gets a class on the wrap so its popup drops the "Life Script" heading
+  // (see .ccard-life-script.ls-is-joker h4 in cardsoflife.css); cleared below for
+  // every real card so a re-used wrap never keeps the joker styling.
+  if (wrap) wrap.classList.remove('ls-is-joker');
   if (c.suit === 'joker') {
-    if (wrap) wrap.style.display = '';
+    if (wrap) { wrap.style.display = ''; wrap.classList.add('ls-is-joker'); }
     host.innerHTML = `<p class="ls-joker-note">The Joker sits above the Sun Line in every Master Script and belongs to no single planetary influence. The 52 cards account for 52 weeks, leaving 1¼ days as remainder. Without a fixed life path, the Joker's work is to consciously choose which card to embody.</p>`;
     return;
   }

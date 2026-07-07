@@ -1320,6 +1320,49 @@ function qToggleAltCourts() {
   if (b) { b.classList.toggle('on', on); b.setAttribute('aria-checked', on ? 'true' : 'false'); }
   try { localStorage.setItem(QUAD_ALT_KEY, on ? '1' : '0'); } catch (e) {}
 }
+// Reading direction — the board is authored right-to-left (position 0, the
+// first card read, sits at each row's RIGHT edge). Toggling .q-ltr on
+// #annualGrid mirrors the grid placement in pure CSS (css/cardsoflife.css)
+// so it reads left-to-right instead; no re-seat, the DOM never changes. A
+// bare class toggle would snap, so the cards FLIP to their mirrored seats
+// with the same invert-then-release transition buildSpreadGrid's place() uses.
+function qToggleReadDir() {
+  const grid = document.getElementById('annualGrid');
+  if (!grid) return;
+  const ctl = ensureSpreadCtl();
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const first = {};
+  if (!reduce) for (let i = 0; i < 52; i++) {
+    const el = ctl.cardEl(i);
+    if (el) first[i] = el.getBoundingClientRect();
+  }
+  const on = grid.classList.toggle('q-ltr');
+  const b = document.getElementById('qLtr');
+  if (b) { b.classList.toggle('on', on); b.setAttribute('aria-checked', on ? 'true' : 'false'); }
+  try { localStorage.setItem(QUAD_LTR_KEY, on ? '1' : '0'); } catch (e) {}
+  if (reduce) return;
+  for (let i = 0; i < 52; i++) {
+    const el = ctl.cardEl(i), f = first[i];
+    if (!el || !f) continue;
+    const l = el.getBoundingClientRect();
+    const dx = f.left - l.left, dy = f.top - l.top;
+    if (!dx && !dy) continue;
+    el.style.transition = 'none';
+    el.style.transform  = `translate(${dx}px, ${dy}px)`;
+  }
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    for (let i = 0; i < 52; i++) {
+      const el = ctl.cardEl(i);
+      if (!el || !el.style.transform) continue;
+      el.style.transition = 'transform .65s cubic-bezier(.22,1,.36,1)';
+      el.style.transform  = '';
+      el.addEventListener('transitionend', function te() {
+        el.style.transition = '';
+        el.removeEventListener('transitionend', te);
+      });
+    }
+  }));
+}
 
 // ── Quadrations settings (gear popover) ─────────────────────────
 // The Spirit/Age/Life view, Alternate court cards, Show displacements, and
@@ -1329,6 +1372,7 @@ function qToggleAltCourts() {
 const QUAD_ALT_KEY  = 'cardsoflife_altCourts';
 const QUAD_DISP_KEY = 'cardsoflife_showDisp';
 const QUAD_MODE_KEY = 'cardsoflife_quadMode';
+const QUAD_LTR_KEY  = 'cardsoflife_quadLtr';   // '1' = read left-to-right (.q-ltr)
 
 // Card size: purely a CSS scale on #annualGrid (--quad-scale, applied in
 // css/cardsoflife.css against --quadration-max-w) — no re-render needed. The
@@ -1393,6 +1437,16 @@ function _restoreQuadToggles() {
     if (localStorage.getItem(QUAD_DISP_KEY) === '1') {
       _qDisp = true;
       qSyncDispBtn();
+    }
+  } catch (e) {}
+  try {
+    if (localStorage.getItem(QUAD_LTR_KEY) === '1') {
+      // Restore the mirrored reading direction directly (no FLIP on load —
+      // qToggleReadDir would animate AND flip the stored value back off).
+      const g = document.getElementById('annualGrid');
+      if (g) g.classList.add('q-ltr');
+      const b = document.getElementById('qLtr');
+      if (b) { b.classList.add('on'); b.setAttribute('aria-checked', 'true'); }
     }
   } catch (e) {}
   let mode = 'annual';

@@ -442,7 +442,9 @@
       : '<div class="hist-empty">No saved readings yet.</div>';
 
     // Backup footer — present even when empty (importing on a fresh device
-    // is exactly the empty case). MCBackup (site.js) covers every store.
+    // is exactly the empty case). MCBackup (site.js) covers every saved
+    // store site-wide (readings, birthdays, prefs, scores, progress — see
+    // BACKUP_KEYS there), not just this page's readings.
     panel.innerHTML = items +
       '<div class="hist-foot">' +
         '<button type="button" id="ihExport">Export</button>' +
