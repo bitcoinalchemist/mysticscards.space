@@ -1794,21 +1794,18 @@
       align-content: start;
       column-gap: .55rem; row-gap: .2rem;
       line-height: 1.4;
-      /* FIXED three-row block — a hard height, not a floor. The date map
-         (solarValue in cardsoflife.js) gives each card 1–12 dates; 12 is the
-         true maximum, which in 4 columns is exactly 3 rows. So this one box
-         holds EVERY card — a 1-date card and a 12-date card occupy the identical
-         space — and the Life Script below NEVER moves. Row count is driven only
-         by how many dates a card has (never by rendered text width), so a
-         browser tab and the installed desktop webapp lay out the same. Height is
-         in rem (root-relative → consistent across devices); overflow:hidden +
-         align-content:start pin the rows to the top. Nothing is clipped: 12
-         dates fill the three rows exactly. Row height .84rem = 1.4 × .6rem. */
-      height: calc(3 * .84rem + 2 * .2rem);
-      overflow: hidden;
-      box-sizing: content-box;
+      /* The grid ALWAYS holds 12 cells (js pads the empty ones), so it is always
+         exactly 3 rows of 4. The block therefore sizes ITSELF to three rows of
+         the real rendered text — a constant height for every card (so the Life
+         Script below never moves) that can never clip a row at any font size.
+         An earlier fixed px/rem height clipped the bottom row in the installed
+         desktop webapp, which renders this small text larger than a browser tab;
+         self-sizing to the actual text removes that failure mode entirely. */
     }
     .cc-date { white-space: nowrap; }
+    /* Padding cells hold a non-breaking space so their grid row stays a full line
+       tall — a card with only a few dates still reserves all three rows. */
+    .cc-date-pad::before { content: "\00a0"; }
     /* Planet + displacement lines inside the header info block */
     .ccard-planets { font-size: .62rem; letter-spacing: .08em; color: var(--muted); margin-top: .25rem; }
     .ccard-displace { font-size: .62rem; letter-spacing: .06em; color: var(--muted); margin-top: .15rem; }

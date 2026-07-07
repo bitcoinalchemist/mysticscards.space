@@ -1047,7 +1047,15 @@ function openCompareCard(idx, ctx) {
   const ccDates = document.getElementById('ccDates');
   if (ccDates) {
     const parts = (c.dates || '').split(',').map(s => s.trim()).filter(Boolean);
-    ccDates.innerHTML = parts.map(d => `<span class="cc-date">${d}</span>`).join('');
+    const CELLS = 12; // busiest card has 12 dates → a full 4×3 grid
+    const cells = parts.slice(0, CELLS).map(d => `<span class="cc-date">${d}</span>`);
+    // Pad with empty cells so the grid is ALWAYS 12 cells = exactly 3 rows. The
+    // block then sizes itself to three rows of the REAL rendered text — so it
+    // stays a constant height for every card (Life Script never shifts) AND can
+    // never clip a row, even where the text renders larger (the installed
+    // desktop webapp enlarges this small text vs a browser tab).
+    while (cells.length < CELLS) cells.push('<span class="cc-date cc-date-pad" aria-hidden="true"></span>');
+    ccDates.innerHTML = cells.join('');
   }
   // A period reading (e.g. the Daily card under today's planet) when a
   // {period,planet} context is supplied and a matching entry exists; null
